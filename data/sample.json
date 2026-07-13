@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "name": "Medical QA",
+    "description": "Sample evaluation dataset",
+    "version": "1.0"
+  },
+  "questions": [
+    {
+      "question": "What is diabetes?",
+      "expected_answer": "A chronic metabolic disease."
+    },
+    {
+      "question": "What is hypertension?",
+      "expected_answer": "High blood pressure."
+    }
+  ]
+}
