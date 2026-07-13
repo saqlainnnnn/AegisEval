@@ -7,14 +7,13 @@ from app.domain.prediction import Prediction
 
 class DummyAdapter(BaseAdapter):
     """
-    Simple adapter used for testing the benchmark pipeline.
+    Simple adapter used for testing the evaluation pipeline.
     """
 
     def evaluate(
         self,
         question: Question,
     ) -> Prediction:
-
         return Prediction(
             answer=question.expected_answer,
             retrieved_sources=question.expected_sources,

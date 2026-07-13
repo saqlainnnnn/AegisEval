@@ -27,6 +27,8 @@ class MetricSummary(DomainModel):
     Collection of metric results for an evaluation run.
     """
 
-    metrics: list[MetricResult] = Field(default_factory=list)
+    metrics: dict[MetricType, MetricResult] = Field(
+        default_factory=dict
+    )
 
     overall_score: float | None = None

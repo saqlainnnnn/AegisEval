@@ -9,14 +9,20 @@ from app.domain.prediction import Prediction
 
 class BaseAdapter(ABC):
     """
-    Abstract interface for AI systems evaluated by AegisEval.
-
-    Every AI application (RAG, Agent, LLM, Vision, etc.)
-    should implement this interface.
+    Base interface for all AI system adapters.
     """
 
-    def __init__(self, config: ModelConfig) -> None:
-        self.config = config
+    def __init__(
+        self,
+        config: ModelConfig,
+    ) -> None:
+        self._config = config
+
+    @property
+    def config(
+        self,
+    ) -> ModelConfig:
+        return self._config
 
     @abstractmethod
     def evaluate(
@@ -24,16 +30,6 @@ class BaseAdapter(ABC):
         question: Question,
     ) -> Prediction:
         """
-        Evaluate a single question.
-
-        Parameters
-        ----------
-        question
-            Evaluation sample.
-
-        Returns
-        -------
-        Prediction
-            Model prediction.
+        Generate a prediction for a question.
         """
         raise NotImplementedError

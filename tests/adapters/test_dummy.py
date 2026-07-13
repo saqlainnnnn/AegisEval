@@ -1,0 +1,43 @@
+from app.adapters.dummy import DummyAdapter
+from app.domain.dataset import Question
+from app.domain.enums import ModelType
+from app.domain.evaluation import ModelConfig
+
+
+def test_dummy_adapter_returns_expected_answer() -> None:
+    config = ModelConfig(
+        name="Dummy",
+        version="1.0",
+        model_type=ModelType.CUSTOM,
+    )
+
+    adapter = DummyAdapter(config)
+
+    question = Question(
+        question="What is AI?",
+        expected_answer="Artificial Intelligence",
+    )
+
+    prediction = adapter.evaluate(question)
+
+    assert prediction.answer == "Artificial Intelligence"
+
+
+def test_dummy_adapter_returns_sources() -> None:
+    config = ModelConfig(
+        name="Dummy",
+        version="1.0",
+        model_type=ModelType.CUSTOM,
+    )
+
+    adapter = DummyAdapter(config)
+
+    question = Question(
+        question="Q",
+        expected_answer="A",
+        expected_sources=["paper1", "paper2"],
+    )
+
+    prediction = adapter.evaluate(question)
+
+    assert prediction.retrieved_sources == ["paper1", "paper2"]
