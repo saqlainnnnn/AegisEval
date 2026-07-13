@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from app.schemas.dataset import Question
-from app.schemas.evaluation import ModelConfig, Prediction
+from app.domain.dataset import Question
+from app.domain.evaluation import ModelConfig
+from app.domain.prediction import Prediction
 
 
 class BaseAdapter(ABC):

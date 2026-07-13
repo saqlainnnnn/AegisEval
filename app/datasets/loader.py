@@ -5,7 +5,11 @@ import json
 from pathlib import Path
 
 from app.datasets.base import BaseDatasetLoader
-from app.schemas.dataset import Dataset, DatasetMetadata, Question
+from app.domain.dataset import (
+    Dataset,
+    DatasetMetadata,
+    Question,
+)
 
 
 class DatasetLoader(BaseDatasetLoader):

@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-
-from app.schemas.dataset import Dataset
+from app.domain.dataset import Dataset
 
 
 class BaseDatasetLoader(ABC):

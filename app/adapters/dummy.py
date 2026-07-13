@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from app.adapters.base import BaseAdapter
-from app.schemas.dataset import Question
-from app.schemas.evaluation import Prediction
+from app.domain.dataset import Question
+from app.domain.prediction import Prediction
 
 
 class DummyAdapter(BaseAdapter):
@@ -16,8 +16,6 @@ class DummyAdapter(BaseAdapter):
     ) -> Prediction:
 
         return Prediction(
-            question_id=question.id,
             answer=question.expected_answer,
             retrieved_sources=question.expected_sources,
-            latency_ms=100.0,
         )
