@@ -1,16 +1,17 @@
-[project]
-name = "aegiseval"
-version = "0.1"
-description = "this is a rag evaluation tool"
-authors = [
-    {name = "Your Name",email = "you@example.com"}
-]
-license = "n"
-requires-python = "y"
-dependencies = [
-]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v"
 
+[tool.black]
+line-length = 88
+target-version = ["py312"]
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
