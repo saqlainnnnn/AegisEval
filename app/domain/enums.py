@@ -40,3 +40,20 @@ class MetricType(str, Enum):
     GROUNDING_RATE = "grounding_rate"
     CITATION_ACCURACY = "citation_accuracy"
     HALLUCINATION_RATE = "hallucination_rate"
+
+class RegressionStatus(str, Enum):
+    """
+    Outcome of a regression comparison.
+    """
+
+    PASSED = "passed"
+    REGRESSION = "regression"
+
+
+class ThresholdType(str, Enum):
+    """
+    Strategy used to evaluate an allowed metric change.
+    """
+
+    ABSOLUTE = "absolute"
+    RELATIVE = "relative"
