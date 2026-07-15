@@ -126,3 +126,8 @@ temp/
 *.bak
 *.swp
 *.swo
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
