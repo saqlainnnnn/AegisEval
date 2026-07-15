@@ -23,9 +23,14 @@ class TrackingRun(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def __enter__(
-        self,
-    ) -> TrackingRun:
+    def log_evaluation(self) -> None:
+        """
+        Log the complete evaluation result as an artifact.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def __enter__(self) -> TrackingRun:
         """
         Enter the tracking run context.
         """

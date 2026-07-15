@@ -69,6 +69,7 @@ def test_mlflow_tracker_logs_run(
 
     with tracker.start_run(evaluation) as run:
         run.log_metrics(summary)
+        run.log_evaluation()
 
     experiment = mlflow.get_experiment_by_name(
         "AegisEval Test"
@@ -85,6 +86,15 @@ def test_mlflow_tracker_logs_run(
     assert len(runs) == 1
 
     logged_run = runs.iloc[0]
+
+    run_id = logged_run["run_id"]
+
+    artifact_path = mlflow.artifacts.download_artifacts(
+        run_id=run_id,
+        artifact_path="evaluation/evaluation.json",
+    )
+
+    assert Path(artifact_path).exists()
 
     assert logged_run["params.model_name"] == "Dummy"
     assert logged_run["params.model_version"] == "1.0"

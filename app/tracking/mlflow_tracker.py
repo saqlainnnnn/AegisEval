@@ -41,8 +41,14 @@ class MLflowTrackingRun(TrackingRun):
     ) -> None:
         if self._active_run is not None:
             mlflow.end_run(
-                status="FAILED" if exc_type is not None else "FINISHED"
+                status=(
+                    "FAILED"
+                    if exc_type is not None
+                    else "FINISHED"
+                )
             )
+
+            self._active_run = None
 
     def log_metrics(
         self,
@@ -59,6 +65,20 @@ class MLflowTrackingRun(TrackingRun):
                 key=metric_type.value,
                 value=metric_result.value,
             )
+
+    def log_evaluation(self) -> None:
+        """
+        Log the complete evaluation result as a JSON artifact.
+        """
+
+        self._ensure_active()
+
+        mlflow.log_dict(
+            dictionary=self._evaluation.model_dump(
+                mode="json"
+            ),
+            artifact_file="evaluation/evaluation.json",
+        )
 
     def _log_evaluation_parameters(self) -> None:
         """
@@ -94,7 +114,7 @@ class MLflowTrackingRun(TrackingRun):
 
     def _ensure_active(self) -> None:
         """
-        Ensure that metric logging happens inside an active run.
+        Ensure logging happens inside an active run.
         """
 
         if self._active_run is None:
