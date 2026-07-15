@@ -97,6 +97,28 @@ def _build_evaluation_service(
     )
 
 
+def _build_regression_service(
+    session,
+) -> RegressionService:
+    return RegressionService(
+        evaluation_repository=(
+            EvaluationRunRepository(
+                session
+            )
+        ),
+        regression_repository=(
+            RegressionRunRepository(
+                session
+            )
+        ),
+        regression_engine=(
+            RegressionEngine(
+                RegressionThresholdPolicy()
+            )
+        ),
+    )
+
+
 def test_compare_persisted_evaluation_runs() -> None:
     engine = create_database_engine(
         "sqlite+pysqlite:///:memory:"
@@ -175,7 +197,7 @@ def test_compare_persisted_evaluation_runs() -> None:
             ),
         )
 
-        result = service.compare(
+        service_result = service.compare(
             baseline_run_id=str(
                 baseline_result.evaluation.id
             ),
@@ -197,12 +219,16 @@ def test_compare_persisted_evaluation_runs() -> None:
                         MetricType.LATENCY
                     ),
                     threshold_type=(
-                        ThresholdType.RELATIVE
+                        ThresholdType.ABSOLUTE
                     ),
-                    value=1.0,
+                    value=1000.0,
                 ),
             ],
         )
+
+        result = service_result.result
+
+        assert service_result.regression_id
 
         assert (
             result.status
@@ -218,6 +244,11 @@ def test_compare_persisted_evaluation_runs() -> None:
         ) == 1
 
         stored = stored_regressions[0]
+
+        assert (
+            stored.id
+            == service_result.regression_id
+        )
 
         assert (
             stored.baseline_run_id
@@ -254,22 +285,10 @@ def test_compare_rejects_missing_baseline() -> None:
     )
 
     with session_factory() as session:
-        service = RegressionService(
-            evaluation_repository=(
-                EvaluationRunRepository(
-                    session
-                )
-            ),
-            regression_repository=(
-                RegressionRunRepository(
-                    session
-                )
-            ),
-            regression_engine=(
-                RegressionEngine(
-                    RegressionThresholdPolicy()
-                )
-            ),
+        service = (
+            _build_regression_service(
+                session
+            )
         )
 
         with pytest.raises(
@@ -334,22 +353,10 @@ def test_compare_rejects_missing_candidate() -> None:
             result=baseline_result,
         )
 
-        service = RegressionService(
-            evaluation_repository=(
-                EvaluationRunRepository(
-                    session
-                )
-            ),
-            regression_repository=(
-                RegressionRunRepository(
-                    session
-                )
-            ),
-            regression_engine=(
-                RegressionEngine(
-                    RegressionThresholdPolicy()
-                )
-            ),
+        service = (
+            _build_regression_service(
+                session
+            )
         )
 
         with pytest.raises(

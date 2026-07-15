@@ -43,9 +43,6 @@ def create_regression(
     service: RegressionService = Depends(
         get_regression_service
     ),
-    repository: RegressionRunRepository = Depends(
-        get_regression_run_repository
-    ),
 ) -> RegressionResponse:
     """
     Compare two persisted evaluation runs.
@@ -63,7 +60,7 @@ def create_regression(
     ]
 
     try:
-        result = service.compare(
+        service_result = service.compare(
             baseline_run_id=(
                 request.baseline_run_id
             ),
@@ -81,12 +78,12 @@ def create_regression(
             detail=str(error),
         ) from error
 
-    records = repository.list_all()
-
-    record = records[-1]
+    result = service_result.result
 
     return RegressionResponse(
-        regression_id=record.id,
+        regression_id=(
+            service_result.regression_id
+        ),
         baseline_run_id=(
             result.baseline_run_id
         ),

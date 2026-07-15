@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from app.domain.enums import MetricType
 from app.domain.metrics import (
     MetricResult,
@@ -14,6 +16,17 @@ from app.persistence.repositories import (
     RegressionRunRepository,
 )
 from app.regression.engine import RegressionEngine
+
+
+@dataclass(frozen=True)
+class RegressionServiceResult:
+    """
+    Result returned after a regression comparison
+    has been executed and persisted.
+    """
+
+    regression_id: str
+    result: RegressionResult
 
 
 class RegressionService:
@@ -49,10 +62,10 @@ class RegressionService:
         thresholds: list[
             RegressionThreshold
         ],
-    ) -> RegressionResult:
+    ) -> RegressionServiceResult:
         """
-        Compare two persisted evaluation runs and
-        persist the regression result.
+        Compare two persisted evaluation runs,
+        persist the result, and return its ID.
         """
 
         baseline_run = (
@@ -99,11 +112,16 @@ class RegressionService:
             thresholds=thresholds,
         )
 
-        self._regression_repository.save(
-            result
+        stored_record = (
+            self._regression_repository.save(
+                result
+            )
         )
 
-        return result
+        return RegressionServiceResult(
+            regression_id=stored_record.id,
+            result=result,
+        )
 
     @staticmethod
     def _build_metric_summary(
