@@ -1,32 +1,42 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
 
 from app.adapters.dummy import DummyAdapter
-from app.api.dependencies import get_database_session
+from app.api.dependencies import (
+    get_evaluation_run_repository,
+    get_experiment_tracker,
+    get_metrics_engine,
+    get_persistence_service,
+)
 from app.api.models.evaluation import (
     CreateEvaluationRequest,
     CreateEvaluationResponse,
+    EvaluationDetailResponse,
+    EvaluationListItemResponse,
     EvaluationMetricResponse,
 )
 from app.benchmark.runner import BenchmarkRunner
-from app.core.config import get_settings
 from app.domain.dataset import (
     Dataset,
     DatasetMetadata,
     Question,
 )
 from app.domain.evaluation import ModelConfig
-from app.metrics.accuracy import AccuracyMetric
 from app.metrics.engine import MetricsEngine
-from app.metrics.failure_rate import FailureRateMetric
-from app.metrics.latency import LatencyMetric
+from app.persistence.repositories import (
+    EvaluationRunRepository,
+)
 from app.services.evaluation import EvaluationService
 from app.services.persistence import (
     EvaluationPersistenceService,
 )
-from app.tracking.mlflow_tracker import MLflowTracker
+from app.tracking.base import BaseExperimentTracker
 
 
 router = APIRouter(
@@ -42,8 +52,14 @@ router = APIRouter(
 )
 def create_evaluation(
     request: CreateEvaluationRequest,
-    session: Session = Depends(
-        get_database_session
+    metrics_engine: MetricsEngine = Depends(
+        get_metrics_engine
+    ),
+    tracker: BaseExperimentTracker = Depends(
+        get_experiment_tracker
+    ),
+    persistence_service: EvaluationPersistenceService = Depends(
+        get_persistence_service
     ),
 ) -> CreateEvaluationResponse:
     """
@@ -90,25 +106,6 @@ def create_evaluation(
         adapter
     )
 
-    metrics_engine = MetricsEngine(
-        [
-            AccuracyMetric(),
-            LatencyMetric(),
-            FailureRateMetric(),
-        ]
-    )
-
-    settings = get_settings()
-
-    tracker = MLflowTracker(
-        experiment_name=(
-            settings.mlflow_experiment_name
-        ),
-        tracking_uri=(
-            settings.mlflow_tracking_uri
-        ),
-    )
-
     evaluation_service = EvaluationService(
         runner=runner,
         metrics_engine=metrics_engine,
@@ -117,12 +114,6 @@ def create_evaluation(
 
     result = evaluation_service.evaluate(
         dataset
-    )
-
-    persistence_service = (
-        EvaluationPersistenceService(
-            session
-        )
     )
 
     persistence_service.save(
@@ -144,14 +135,88 @@ def create_evaluation(
     return CreateEvaluationResponse(
         evaluation_id=result.evaluation.id,
         dataset_id=dataset.id,
-        tracking_run_id=(
-            result.tracking_run_id
-        ),
-        model_name=(
-            result.evaluation.model.name
-        ),
+        tracking_run_id=result.tracking_run_id,
+        model_name=result.evaluation.model.name,
         model_version=(
             result.evaluation.model.version
         ),
         metrics=metrics,
+    )
+
+
+@router.get(
+    "",
+    response_model=list[
+        EvaluationListItemResponse
+    ],
+)
+def list_evaluations(
+    repository: EvaluationRunRepository = Depends(
+        get_evaluation_run_repository
+    ),
+) -> list[EvaluationListItemResponse]:
+    """
+    Return all persisted evaluation runs.
+    """
+
+    runs = repository.list_all()
+
+    return [
+        EvaluationListItemResponse(
+            evaluation_id=run.id,
+            model_name=run.model.name,
+            model_version=run.model.version,
+            dataset_name=run.dataset.name,
+            tracking_run_id=run.mlflow_run_id,
+            started_at=run.started_at.isoformat(),
+            finished_at=run.finished_at.isoformat(),
+            duration_ms=run.duration_ms,
+        )
+        for run in runs
+    ]
+
+
+@router.get(
+    "/{evaluation_id}",
+    response_model=EvaluationDetailResponse,
+)
+def get_evaluation(
+    evaluation_id: str,
+    repository: EvaluationRunRepository = Depends(
+        get_evaluation_run_repository
+    ),
+) -> EvaluationDetailResponse:
+    """
+    Return one persisted evaluation run.
+    """
+
+    run = repository.get(
+        evaluation_id
+    )
+
+    if run is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Evaluation not found",
+        )
+
+    return EvaluationDetailResponse(
+        evaluation_id=run.id,
+        model_name=run.model.name,
+        model_version=run.model.version,
+        dataset_name=run.dataset.name,
+        tracking_run_id=run.mlflow_run_id,
+        started_at=run.started_at.isoformat(),
+        finished_at=run.finished_at.isoformat(),
+        duration_ms=run.duration_ms,
+        metrics=[
+            EvaluationMetricResponse(
+                name=metric.metric_type,
+                value=metric.value,
+                higher_is_better=(
+                    metric.higher_is_better
+                ),
+            )
+            for metric in run.metrics
+        ],
     )

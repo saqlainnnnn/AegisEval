@@ -103,3 +103,27 @@ class CreateEvaluationResponse(BaseModel):
     metrics: list[
         EvaluationMetricResponse
     ]
+
+class EvaluationListItemResponse(BaseModel):
+    """
+    Summary of a persisted evaluation run.
+    """
+
+    evaluation_id: str
+    model_name: str
+    model_version: str
+    dataset_name: str
+    tracking_run_id: str | None
+    started_at: str
+    finished_at: str
+    duration_ms: float
+
+
+class EvaluationDetailResponse(
+    EvaluationListItemResponse
+):
+    """
+    Detailed persisted evaluation run.
+    """
+
+    metrics: list[EvaluationMetricResponse]

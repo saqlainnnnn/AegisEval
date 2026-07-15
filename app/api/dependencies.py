@@ -3,12 +3,24 @@ from __future__ import annotations
 from collections.abc import Generator
 from functools import lru_cache
 
+from fastapi import Depends
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.core.config import Settings, get_settings
+from app.core.config import get_settings
 from app.database.engine import create_database_engine
 from app.database.session import create_session_factory
+from app.metrics.accuracy import AccuracyMetric
+from app.metrics.engine import MetricsEngine
+from app.metrics.failure_rate import FailureRateMetric
+from app.metrics.latency import LatencyMetric
+from app.persistence.repositories import (
+    EvaluationRunRepository,
+)
+from app.services.persistence import (
+    EvaluationPersistenceService,
+)
+from app.tracking.mlflow_tracker import MLflowTracker
 
 
 @lru_cache
@@ -37,7 +49,11 @@ def get_session_factory() -> sessionmaker[Session]:
     )
 
 
-def get_database_session() -> Generator[Session, None, None]:
+def get_database_session() -> Generator[
+    Session,
+    None,
+    None,
+]:
     """
     Provide a database session for one request.
     """
@@ -46,3 +62,62 @@ def get_database_session() -> Generator[Session, None, None]:
 
     with session_factory() as session:
         yield session
+
+
+def get_metrics_engine() -> MetricsEngine:
+    """
+    Create the metrics engine used for evaluations.
+    """
+
+    return MetricsEngine(
+        [
+            AccuracyMetric(),
+            LatencyMetric(),
+            FailureRateMetric(),
+        ]
+    )
+
+
+def get_experiment_tracker() -> MLflowTracker:
+    """
+    Create the configured experiment tracker.
+    """
+
+    settings = get_settings()
+
+    return MLflowTracker(
+        experiment_name=(
+            settings.mlflow_experiment_name
+        ),
+        tracking_uri=(
+            settings.mlflow_tracking_uri
+        ),
+    )
+
+
+def get_persistence_service(
+    session: Session = Depends(
+        get_database_session
+    ),
+) -> EvaluationPersistenceService:
+    """
+    Create the evaluation persistence service.
+    """
+
+    return EvaluationPersistenceService(
+        session
+    )
+
+
+def get_evaluation_run_repository(
+    session: Session = Depends(
+        get_database_session
+    ),
+) -> EvaluationRunRepository:
+    """
+    Create the evaluation run repository.
+    """
+
+    return EvaluationRunRepository(
+        session
+    )
