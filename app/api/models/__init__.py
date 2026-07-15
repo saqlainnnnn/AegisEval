@@ -6,6 +6,12 @@ from app.api.models.evaluation import (
     EvaluationModelRequest,
     EvaluationQuestionRequest,
 )
+from app.api.models.regression import (
+    CreateRegressionRequest,
+    RegressionMetricResponse,
+    RegressionResponse,
+    RegressionThresholdRequest,
+)
 
 __all__ = [
     "CreateEvaluationRequest",
@@ -14,4 +20,8 @@ __all__ = [
     "EvaluationMetricResponse",
     "EvaluationModelRequest",
     "EvaluationQuestionRequest",
+    "CreateRegressionRequest",
+    "RegressionMetricResponse",
+    "RegressionResponse",
+    "RegressionThresholdRequest",
 ]

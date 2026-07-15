@@ -22,6 +22,16 @@ from app.services.persistence import (
 )
 from app.tracking.mlflow_tracker import MLflowTracker
 
+from app.persistence.repositories import (
+    EvaluationRunRepository,
+    RegressionRunRepository,
+)
+from app.regression.engine import RegressionEngine
+from app.regression.policy import (
+    RegressionThresholdPolicy,
+)
+from app.services.regression import RegressionService
+
 
 @lru_cache
 def get_database_engine() -> Engine:
@@ -120,4 +130,55 @@ def get_evaluation_run_repository(
 
     return EvaluationRunRepository(
         session
+    )
+
+def get_regression_run_repository(
+    session: Session = Depends(
+        get_database_session
+    ),
+) -> RegressionRunRepository:
+    """
+    Create the regression run repository.
+    """
+
+    return RegressionRunRepository(
+        session
+    )
+
+
+def get_regression_engine() -> RegressionEngine:
+    """
+    Create the regression comparison engine.
+    """
+
+    return RegressionEngine(
+        RegressionThresholdPolicy()
+    )
+
+
+def get_regression_service(
+    evaluation_repository: EvaluationRunRepository = Depends(
+        get_evaluation_run_repository
+    ),
+    regression_repository: RegressionRunRepository = Depends(
+        get_regression_run_repository
+    ),
+    regression_engine: RegressionEngine = Depends(
+        get_regression_engine
+    ),
+) -> RegressionService:
+    """
+    Create the regression orchestration service.
+    """
+
+    return RegressionService(
+        evaluation_repository=(
+            evaluation_repository
+        ),
+        regression_repository=(
+            regression_repository
+        ),
+        regression_engine=(
+            regression_engine
+        ),
     )
