@@ -18,6 +18,7 @@ class EvaluationServiceResult:
 
     evaluation: EvaluationResult
     metrics: MetricSummary
+    tracking_run_id: str | None = None
 
 
 class EvaluationService:
@@ -50,14 +51,24 @@ class EvaluationService:
             evaluation
         )
 
+        tracking_run_id: str | None = None
+
         if self._tracker is not None:
             with self._tracker.start_run(
                 evaluation
             ) as tracking_run:
-                tracking_run.log_metrics(metrics)
+                tracking_run_id = (
+                    tracking_run.run_id
+                )
+
+                tracking_run.log_metrics(
+                    metrics
+                )
+
                 tracking_run.log_evaluation()
 
         return EvaluationServiceResult(
             evaluation=evaluation,
             metrics=metrics,
+            tracking_run_id=tracking_run_id,
         )

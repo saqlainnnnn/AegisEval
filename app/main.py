@@ -1,19 +1,6 @@
-from fastapi import FastAPI
+from __future__ import annotations
 
-app = FastAPI(
-    title="AegisEval",
-    description="A production-grade AI evaluation and benchmarking platform.",
-    version="0.1.0",
-)
+from app.api.app import create_app
 
 
-@app.get("/")
-def root() -> dict[str, str]:
-    """Root endpoint."""
-    return {"message": "Welcome to AegisEval 🚀"}
-
-
-@app.get("/health")
-def health() -> dict[str, str]:
-    """Health check endpoint."""
-    return {"status": "healthy"}
+app = create_app()

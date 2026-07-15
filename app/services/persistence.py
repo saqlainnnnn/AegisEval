@@ -49,12 +49,10 @@ class EvaluationPersistenceService:
         )
 
     def save(
-        self,
-        dataset: Dataset,
-        result: EvaluationServiceResult,
-        *,
-        mlflow_run_id: str | None = None,
-    ) -> EvaluationRunRecord:
+    self,
+    dataset: Dataset,
+    result: EvaluationServiceResult,
+    ) -> EvaluationRunRecord: 
         """
         Persist a completed evaluation workflow.
         """
@@ -72,7 +70,6 @@ class EvaluationPersistenceService:
                 result=result,
                 model_record=model_record,
                 dataset_record=dataset_record,
-                mlflow_run_id=mlflow_run_id,
             )
 
             self._run_repository.add(
@@ -149,7 +146,6 @@ class EvaluationPersistenceService:
         result: EvaluationServiceResult,
         model_record: ModelRecord,
         dataset_record: DatasetRecord,
-        mlflow_run_id: str | None,
     ) -> EvaluationRunRecord:
         evaluation = result.evaluation
 
@@ -157,7 +153,7 @@ class EvaluationPersistenceService:
             id=str(evaluation.id),
             model=model_record,
             dataset=dataset_record,
-            mlflow_run_id=mlflow_run_id,
+            mlflow_run_id=result.tracking_run_id,
             started_at=evaluation.started_at,
             finished_at=evaluation.finished_at,
             duration_ms=evaluation.duration_ms,

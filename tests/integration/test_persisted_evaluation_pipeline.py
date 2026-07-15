@@ -169,7 +169,12 @@ def test_complete_persisted_evaluation_pipeline(
             result.evaluation.id
         )
 
-        assert stored_run.mlflow_run_id is None
+        assert result.tracking_run_id is not None
+
+        assert (
+            stored_run.mlflow_run_id
+            == result.tracking_run_id
+        )
 
         assert stored_run.model.name == "Dummy"
 
@@ -242,6 +247,15 @@ def test_complete_persisted_evaluation_pipeline(
 
     logged_run = runs.iloc[0]
 
+    assert (
+    logged_run["run_id"]
+    == result.tracking_run_id
+    )
+
+    assert (
+        stored_run.mlflow_run_id
+        == logged_run["run_id"]
+    )
     assert logged_run["status"] == "FINISHED"
 
     assert (

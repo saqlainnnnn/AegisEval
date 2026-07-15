@@ -103,17 +103,13 @@ def test_persist_complete_evaluation() -> None:
         stored_run = persistence_service.save(
             dataset=dataset,
             result=result,
-            mlflow_run_id="mlflow-run-123",
         )
 
         assert stored_run.id == str(
             result.evaluation.id
         )
 
-        assert (
-            stored_run.mlflow_run_id
-            == "mlflow-run-123"
-        )
+        assert stored_run.mlflow_run_id is None
 
         assert stored_run.model.name == "Dummy"
 

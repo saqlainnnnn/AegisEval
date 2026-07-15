@@ -12,6 +12,14 @@ class TrackingRun(ABC):
     Represents an active experiment tracking run.
     """
 
+    @property
+    @abstractmethod
+    def run_id(self) -> str:
+        """
+        Return the backend identifier for the tracking run.
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def log_metrics(
         self,

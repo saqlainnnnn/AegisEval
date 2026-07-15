@@ -58,6 +58,10 @@ class FakeTrackingRun(TrackingRun):
     def log_evaluation(self) -> None:
         self.evaluation_logged = True
 
+    @property
+    def run_id(self) -> str:
+        return "fake-run-123"
+
 
 class FakeExperimentTracker(BaseExperimentTracker):
     """
@@ -185,3 +189,4 @@ def test_evaluation_service_tracks_evaluation() -> None:
     assert tracker.run.metrics == result.metrics
 
     assert tracker.run.evaluation_logged is True
+    assert result.tracking_run_id == "fake-run-123"

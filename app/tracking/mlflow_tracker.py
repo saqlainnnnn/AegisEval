@@ -122,6 +122,19 @@ class MLflowTrackingRun(TrackingRun):
                 "MLflow tracking run is not active. "
                 "Use the tracking run as a context manager."
             )
+    
+    @property
+    def run_id(self) -> str:
+        """
+        Return the active MLflow run identifier.
+        """
+
+        if self._active_run is None:
+            raise RuntimeError(
+                "MLflow tracking run is not active."
+            )
+
+        return self._active_run.info.run_id
 
 
 class MLflowTracker(BaseExperimentTracker):
