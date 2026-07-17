@@ -73,105 +73,65 @@ def _build_evaluation_service() -> EvaluationService:
 
 
 def test_persist_complete_evaluation() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
-    session_factory = create_session_factory(
-        engine
-    )
+    session_factory = create_session_factory(engine)
 
     dataset = _build_dataset()
 
-    evaluation_service = (
-        _build_evaluation_service()
-    )
+    evaluation_service = _build_evaluation_service()
 
-    result = evaluation_service.evaluate(
-        dataset
-    )
+    result = evaluation_service.evaluate(dataset)
 
     with session_factory() as session:
-        persistence_service = (
-            EvaluationPersistenceService(
-                session
-            )
-        )
+        persistence_service = EvaluationPersistenceService(session)
 
         stored_run = persistence_service.save(
             dataset=dataset,
             result=result,
         )
 
-        assert stored_run.id == str(
-            result.evaluation.id
-        )
+        assert stored_run.id == str(result.evaluation.id)
 
         assert stored_run.mlflow_run_id is None
 
         assert stored_run.model.name == "Dummy"
 
-        assert (
-            stored_run.dataset.name
-            == "Persistence Test"
-        )
+        assert stored_run.dataset.name == "Persistence Test"
 
         assert len(stored_run.metrics) == 3
 
-        metric_types = {
-            metric.metric_type
-            for metric in stored_run.metrics
-        }
+        metric_types = {metric.metric_type for metric in stored_run.metrics}
 
-        assert (
-            MetricType.ACCURACY.value
-            in metric_types
-        )
+        assert MetricType.ACCURACY.value in metric_types
 
-        assert (
-            MetricType.LATENCY.value
-            in metric_types
-        )
+        assert MetricType.LATENCY.value in metric_types
 
-        assert (
-            MetricType.FAILURE_RATE.value
-            in metric_types
-        )
+        assert MetricType.FAILURE_RATE.value in metric_types
 
 
 def test_persistence_creates_model_and_dataset() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
-    session_factory = create_session_factory(
-        engine
-    )
+    session_factory = create_session_factory(engine)
 
     dataset = _build_dataset()
 
-    result = (
-        _build_evaluation_service()
-        .evaluate(dataset)
-    )
+    result = _build_evaluation_service().evaluate(dataset)
 
     with session_factory() as session:
-        service = EvaluationPersistenceService(
-            session
-        )
+        service = EvaluationPersistenceService(session)
 
         service.save(
             dataset=dataset,
             result=result,
         )
 
-        stored_models = session.query(
-            ModelRecord
-        ).all()
+        stored_models = session.query(ModelRecord).all()
 
         stored_dataset = session.get(
             DatasetRecord,
@@ -193,34 +153,22 @@ def test_persistence_creates_model_and_dataset() -> None:
 
 
 def test_persistence_reuses_existing_model_and_dataset() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
-    session_factory = create_session_factory(
-        engine
-    )
+    session_factory = create_session_factory(engine)
 
     dataset = _build_dataset()
 
-    evaluation_service = (
-        _build_evaluation_service()
-    )
+    evaluation_service = _build_evaluation_service()
 
-    first_result = evaluation_service.evaluate(
-        dataset
-    )
+    first_result = evaluation_service.evaluate(dataset)
 
-    second_result = evaluation_service.evaluate(
-        dataset
-    )
+    second_result = evaluation_service.evaluate(dataset)
 
     with session_factory() as session:
-        service = EvaluationPersistenceService(
-            session
-        )
+        service = EvaluationPersistenceService(session)
 
         service.save(
             dataset=dataset,
@@ -232,17 +180,11 @@ def test_persistence_reuses_existing_model_and_dataset() -> None:
             result=second_result,
         )
 
-        models = session.query(
-            ModelRecord
-        ).all()
+        models = session.query(ModelRecord).all()
 
-        datasets = session.query(
-            DatasetRecord
-        ).all()
+        datasets = session.query(DatasetRecord).all()
 
-        runs = session.query(
-            EvaluationRunRecord
-        ).all()
+        runs = session.query(EvaluationRunRecord).all()
 
         assert len(models) == 1
         assert len(datasets) == 1

@@ -36,9 +36,7 @@ class CreateRegressionRequest(BaseModel):
         min_length=1,
     )
 
-    thresholds: list[
-        RegressionThresholdRequest
-    ] = Field(
+    thresholds: list[RegressionThresholdRequest] = Field(
         min_length=1,
     )
 
@@ -74,6 +72,4 @@ class RegressionResponse(BaseModel):
 
     status: RegressionStatus
 
-    comparisons: list[
-        RegressionMetricResponse
-    ]
+    comparisons: list[RegressionMetricResponse]

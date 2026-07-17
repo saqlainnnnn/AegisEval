@@ -71,17 +71,11 @@ def test_mlflow_tracker_logs_run(
         run.log_metrics(summary)
         run.log_evaluation()
 
-    experiment = mlflow.get_experiment_by_name(
-        "AegisEval Test"
-    )
+    experiment = mlflow.get_experiment_by_name("AegisEval Test")
 
     assert experiment is not None
 
-    runs = mlflow.search_runs(
-        experiment_ids=[
-            experiment.experiment_id
-        ]
-    )
+    runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
 
     assert len(runs) == 1
 
@@ -101,13 +95,9 @@ def test_mlflow_tracker_logs_run(
     assert logged_run["params.prompt_version"] == "v1"
     assert logged_run["params.top_k"] == "5"
 
-    assert logged_run[
-        f"metrics.{MetricType.ACCURACY.value}"
-    ] == 1.0
+    assert logged_run[f"metrics.{MetricType.ACCURACY.value}"] == 1.0
 
-    assert logged_run[
-        f"metrics.{MetricType.FAILURE_RATE.value}"
-    ] == 0.0
+    assert logged_run[f"metrics.{MetricType.FAILURE_RATE.value}"] == 0.0
 
     assert logged_run["status"] == "FINISHED"
 
@@ -130,21 +120,13 @@ def test_mlflow_tracker_marks_failed_run(
         match="simulated tracking failure",
     ):
         with tracker.start_run(evaluation):
-            raise RuntimeError(
-                "simulated tracking failure"
-            )
+            raise RuntimeError("simulated tracking failure")
 
-    experiment = mlflow.get_experiment_by_name(
-        "AegisEval Failed Test"
-    )
+    experiment = mlflow.get_experiment_by_name("AegisEval Failed Test")
 
     assert experiment is not None
 
-    runs = mlflow.search_runs(
-        experiment_ids=[
-            experiment.experiment_id
-        ]
-    )
+    runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
 
     assert len(runs) == 1
     assert runs.iloc[0]["status"] == "FAILED"

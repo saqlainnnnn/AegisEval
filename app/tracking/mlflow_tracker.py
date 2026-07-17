@@ -40,13 +40,7 @@ class MLflowTrackingRun(TrackingRun):
         traceback: TracebackType | None,
     ) -> None:
         if self._active_run is not None:
-            mlflow.end_run(
-                status=(
-                    "FAILED"
-                    if exc_type is not None
-                    else "FINISHED"
-                )
-            )
+            mlflow.end_run(status=("FAILED" if exc_type is not None else "FINISHED"))
 
             self._active_run = None
 
@@ -74,9 +68,7 @@ class MLflowTrackingRun(TrackingRun):
         self._ensure_active()
 
         mlflow.log_dict(
-            dictionary=self._evaluation.model_dump(
-                mode="json"
-            ),
+            dictionary=self._evaluation.model_dump(mode="json"),
             artifact_file="evaluation/evaluation.json",
         )
 
@@ -122,7 +114,7 @@ class MLflowTrackingRun(TrackingRun):
                 "MLflow tracking run is not active. "
                 "Use the tracking run as a context manager."
             )
-    
+
     @property
     def run_id(self) -> str:
         """
@@ -130,9 +122,7 @@ class MLflowTrackingRun(TrackingRun):
         """
 
         if self._active_run is None:
-            raise RuntimeError(
-                "MLflow tracking run is not active."
-            )
+            raise RuntimeError("MLflow tracking run is not active.")
 
         return self._active_run.info.run_id
 

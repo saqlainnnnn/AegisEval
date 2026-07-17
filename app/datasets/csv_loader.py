@@ -35,9 +35,7 @@ class CSVDatasetLoader(BaseDatasetLoader):
                 Question(
                     question=row["question"],
                     expected_answer=row["expected_answer"],
-                    expected_sources=self._parse_list(
-                        row.get("expected_sources")
-                    ),
+                    expected_sources=self._parse_list(row.get("expected_sources")),
                     difficulty=row.get(
                         "difficulty",
                         "medium",
@@ -46,9 +44,7 @@ class CSVDatasetLoader(BaseDatasetLoader):
                         "category",
                         "general",
                     ),
-                    tags=self._parse_list(
-                        row.get("tags")
-                    ),
+                    tags=self._parse_list(row.get("tags")),
                 )
             )
 
@@ -61,8 +57,4 @@ class CSVDatasetLoader(BaseDatasetLoader):
         if not value:
             return []
 
-        return [
-            item.strip()
-            for item in value.split(",")
-            if item.strip()
-        ]
+        return [item.strip() for item in value.split(",") if item.strip()]

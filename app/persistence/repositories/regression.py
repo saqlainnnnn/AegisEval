@@ -30,47 +30,21 @@ class RegressionRunRepository:
         """
 
         record = RegressionRunRecord(
-            baseline_run_id=(
-                result.baseline_run_id
-            ),
-            candidate_run_id=(
-                result.candidate_run_id
-            ),
+            baseline_run_id=(result.baseline_run_id),
+            candidate_run_id=(result.candidate_run_id),
             status=result.status.value,
             comparisons=[
                 RegressionMetricRecord(
-                    metric_type=(
-                        comparison.metric.value
-                    ),
-                    baseline_value=(
-                        comparison.baseline_value
-                    ),
-                    candidate_value=(
-                        comparison.candidate_value
-                    ),
-                    absolute_change=(
-                        comparison.absolute_change
-                    ),
-                    relative_change=(
-                        comparison.relative_change
-                    ),
-                    threshold_type=(
-                        comparison
-                        .threshold
-                        .threshold_type
-                        .value
-                    ),
-                    threshold_value=(
-                        comparison
-                        .threshold
-                        .value
-                    ),
-                    status=(
-                        comparison.status.value
-                    ),
+                    metric_type=(comparison.metric.value),
+                    baseline_value=(comparison.baseline_value),
+                    candidate_value=(comparison.candidate_value),
+                    absolute_change=(comparison.absolute_change),
+                    relative_change=(comparison.relative_change),
+                    threshold_type=(comparison.threshold.threshold_type.value),
+                    threshold_value=(comparison.threshold.value),
+                    status=(comparison.status.value),
                 )
-                for comparison
-                in result.comparisons
+                for comparison in result.comparisons
             ],
         )
 
@@ -90,20 +64,11 @@ class RegressionRunRepository:
 
         statement = (
             select(RegressionRunRecord)
-            .options(
-                selectinload(
-                    RegressionRunRecord.comparisons
-                )
-            )
-            .where(
-                RegressionRunRecord.id
-                == regression_id
-            )
+            .options(selectinload(RegressionRunRecord.comparisons))
+            .where(RegressionRunRecord.id == regression_id)
         )
 
-        return self._session.scalar(
-            statement
-        )
+        return self._session.scalar(statement)
 
     def list_all(
         self,
@@ -112,17 +77,8 @@ class RegressionRunRepository:
         Return all persisted regression results.
         """
 
-        statement = (
-            select(RegressionRunRecord)
-            .options(
-                selectinload(
-                    RegressionRunRecord.comparisons
-                )
-            )
+        statement = select(RegressionRunRecord).options(
+            selectinload(RegressionRunRecord.comparisons)
         )
 
-        return list(
-            self._session.scalars(
-                statement
-            ).all()
-        )
+        return list(self._session.scalars(statement).all())

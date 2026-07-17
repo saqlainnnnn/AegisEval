@@ -33,7 +33,4 @@ class JSONLDatasetLoader(BaseDatasetLoader):
         self,
         raw_data: Any,
     ) -> list[Question]:
-        return [
-            Question(**row)
-            for row in raw_data
-        ]
+        return [Question(**row) for row in raw_data]

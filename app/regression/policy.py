@@ -33,35 +33,22 @@ class RegressionThresholdPolicy:
             higher_is_better=higher_is_better,
         )
 
-        if (
-            threshold.threshold_type
-            == ThresholdType.ABSOLUTE
-        ):
+        if threshold.threshold_type == ThresholdType.ABSOLUTE:
             allowed_degradation = threshold.value
 
-        elif (
-            threshold.threshold_type
-            == ThresholdType.RELATIVE
-        ):
-            allowed_degradation = (
-                abs(baseline_value)
-                * threshold.value
-            )
+        elif threshold.threshold_type == ThresholdType.RELATIVE:
+            allowed_degradation = abs(baseline_value) * threshold.value
 
         else:
             raise ValueError(
-                "Unsupported threshold type: "
-                f"{threshold.threshold_type}"
+                "Unsupported threshold type: " f"{threshold.threshold_type}"
             )
 
-        exceeds_threshold = (
-            degradation > allowed_degradation
-            and not math.isclose(
-                degradation,
-                allowed_degradation,
-                rel_tol=1e-9,
-                abs_tol=1e-12,
-            )
+        exceeds_threshold = degradation > allowed_degradation and not math.isclose(
+            degradation,
+            allowed_degradation,
+            rel_tol=1e-9,
+            abs_tol=1e-12,
         )
 
         if exceeds_threshold:
@@ -83,12 +70,6 @@ class RegressionThresholdPolicy:
         """
 
         if higher_is_better:
-            return (
-                baseline_value
-                - candidate_value
-            )
+            return baseline_value - candidate_value
 
-        return (
-            candidate_value
-            - baseline_value
-        )
+        return candidate_value - baseline_value

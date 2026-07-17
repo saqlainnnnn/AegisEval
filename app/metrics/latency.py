@@ -22,10 +22,7 @@ class LatencyMetric(BaseMetric):
                 value=0.0,
             )
 
-        latencies = [
-            sample.latency_ms
-            for sample in result.sample_results
-        ]
+        latencies = [sample.latency_ms for sample in result.sample_results]
 
         average = sum(latencies) / len(latencies)
 

@@ -47,8 +47,6 @@ class MetricRecord(Base):
         default=dict,
     )
 
-    evaluation_run: Mapped[
-        "EvaluationRunRecord"
-    ] = relationship(
+    evaluation_run: Mapped["EvaluationRunRecord"] = relationship(
         back_populates="metrics",
     )

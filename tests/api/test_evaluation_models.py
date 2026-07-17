@@ -18,16 +18,12 @@ def test_create_evaluation_request() -> None:
         },
         dataset={
             "name": "API Test Dataset",
-            "description": (
-                "Evaluation API request test"
-            ),
+            "description": ("Evaluation API request test"),
             "version": "1.0",
             "questions": [
                 {
                     "question": "What is AI?",
-                    "expected_answer": (
-                        "Artificial Intelligence"
-                    ),
+                    "expected_answer": ("Artificial Intelligence"),
                 }
             ],
         },
@@ -36,14 +32,9 @@ def test_create_evaluation_request() -> None:
     assert request.model.name == "Dummy"
     assert request.model.top_k == 5
 
-    assert (
-        request.dataset.name
-        == "API Test Dataset"
-    )
+    assert request.dataset.name == "API Test Dataset"
 
-    assert len(
-        request.dataset.questions
-    ) == 1
+    assert len(request.dataset.questions) == 1
 
 
 def test_evaluation_request_requires_questions() -> None:
@@ -75,9 +66,7 @@ def test_evaluation_request_rejects_invalid_top_k() -> None:
                 "questions": [
                     {
                         "question": "What is AI?",
-                        "expected_answer": (
-                            "Artificial Intelligence"
-                        ),
+                        "expected_answer": ("Artificial Intelligence"),
                     }
                 ],
             },

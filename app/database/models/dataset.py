@@ -40,8 +40,6 @@ class DatasetRecord(Base):
         nullable=False,
     )
 
-    evaluation_runs: Mapped[
-        list["EvaluationRunRecord"]
-    ] = relationship(
+    evaluation_runs: Mapped[list["EvaluationRunRecord"]] = relationship(
         back_populates="dataset",
     )

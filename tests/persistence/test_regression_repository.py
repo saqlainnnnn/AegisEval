@@ -46,38 +46,29 @@ def _build_dataset(
     return Dataset(
         metadata=DatasetMetadata(
             name=name,
-            description=(
-                "Regression persistence test dataset"
-            ),
+            description=("Regression persistence test dataset"),
             version="1.0",
         ),
         questions=[
             Question(
                 question="What is AI?",
-                expected_answer=(
-                    "Artificial Intelligence"
-                ),
+                expected_answer=("Artificial Intelligence"),
             )
         ],
     )
 
 
-def _build_evaluation_service(
-) -> EvaluationService:
+def _build_evaluation_service() -> EvaluationService:
     config = ModelConfig(
         name="Dummy",
         version="1.0",
         model_type=ModelType.CUSTOM,
     )
 
-    adapter = DummyAdapter(
-        config
-    )
+    adapter = DummyAdapter(config)
 
     return EvaluationService(
-        runner=BenchmarkRunner(
-            adapter
-        ),
+        runner=BenchmarkRunner(adapter),
         metrics_engine=MetricsEngine(
             [
                 AccuracyMetric(),
@@ -89,48 +80,24 @@ def _build_evaluation_service(
 
 
 def test_save_and_get_regression_result() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
-    session_factory = (
-        create_session_factory(
-            engine
-        )
-    )
+    session_factory = create_session_factory(engine)
 
-    evaluation_service = (
-        _build_evaluation_service()
-    )
+    evaluation_service = _build_evaluation_service()
 
-    baseline_dataset = _build_dataset(
-        "Baseline Dataset"
-    )
+    baseline_dataset = _build_dataset("Baseline Dataset")
 
-    candidate_dataset = _build_dataset(
-        "Candidate Dataset"
-    )
+    candidate_dataset = _build_dataset("Candidate Dataset")
 
-    baseline_result = (
-        evaluation_service.evaluate(
-            baseline_dataset
-        )
-    )
+    baseline_result = evaluation_service.evaluate(baseline_dataset)
 
-    candidate_result = (
-        evaluation_service.evaluate(
-            candidate_dataset
-        )
-    )
+    candidate_result = evaluation_service.evaluate(candidate_dataset)
 
     with session_factory() as session:
-        persistence_service = (
-            EvaluationPersistenceService(
-                session
-            )
-        )
+        persistence_service = EvaluationPersistenceService(session)
 
         persistence_service.save(
             dataset=baseline_dataset,
@@ -142,96 +109,45 @@ def test_save_and_get_regression_result() -> None:
             result=candidate_result,
         )
 
-        regression_result = RegressionEngine(
-            RegressionThresholdPolicy()
-        ).compare(
-            baseline_run_id=str(
-                baseline_result.evaluation.id
-            ),
-            candidate_run_id=str(
-                candidate_result.evaluation.id
-            ),
-            baseline=(
-                baseline_result.metrics
-            ),
-            candidate=(
-                candidate_result.metrics
-            ),
+        regression_result = RegressionEngine(RegressionThresholdPolicy()).compare(
+            baseline_run_id=str(baseline_result.evaluation.id),
+            candidate_run_id=str(candidate_result.evaluation.id),
+            baseline=(baseline_result.metrics),
+            candidate=(candidate_result.metrics),
             thresholds=[
                 RegressionThreshold(
-                    metric=(
-                        MetricType.ACCURACY
-                    ),
-                    threshold_type=(
-                        ThresholdType.ABSOLUTE
-                    ),
+                    metric=(MetricType.ACCURACY),
+                    threshold_type=(ThresholdType.ABSOLUTE),
                     value=0.05,
                 ),
                 RegressionThreshold(
-                    metric=(
-                        MetricType.LATENCY
-                    ),
-                    threshold_type=(
-                        ThresholdType.RELATIVE
-                    ),
+                    metric=(MetricType.LATENCY),
+                    threshold_type=(ThresholdType.RELATIVE),
                     value=0.50,
                 ),
             ],
         )
 
-        repository = (
-            RegressionRunRepository(
-                session
-            )
-        )
+        repository = RegressionRunRepository(session)
 
-        stored = repository.save(
-            regression_result
-        )
+        stored = repository.save(regression_result)
 
         regression_id = stored.id
 
-        loaded = repository.get(
-            regression_id
-        )
+        loaded = repository.get(regression_id)
 
         assert loaded is not None
 
-        assert (
-            loaded.baseline_run_id
-            == str(
-                baseline_result.evaluation.id
-            )
-        )
+        assert loaded.baseline_run_id == str(baseline_result.evaluation.id)
 
-        assert (
-            loaded.candidate_run_id
-            == str(
-                candidate_result.evaluation.id
-            )
-        )
+        assert loaded.candidate_run_id == str(candidate_result.evaluation.id)
 
-        assert (
-            loaded.status
-            == regression_result.status.value
-        )
+        assert loaded.status == regression_result.status.value
 
-        assert len(
-            loaded.comparisons
-        ) == 2
+        assert len(loaded.comparisons) == 2
 
-        metric_types = {
-            comparison.metric_type
-            for comparison
-            in loaded.comparisons
-        }
+        metric_types = {comparison.metric_type for comparison in loaded.comparisons}
 
-        assert (
-            MetricType.ACCURACY.value
-            in metric_types
-        )
+        assert MetricType.ACCURACY.value in metric_types
 
-        assert (
-            MetricType.LATENCY.value
-            in metric_types
-        )
+        assert MetricType.LATENCY.value in metric_types

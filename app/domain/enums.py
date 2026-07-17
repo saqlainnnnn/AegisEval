@@ -41,6 +41,7 @@ class MetricType(str, Enum):
     CITATION_ACCURACY = "citation_accuracy"
     HALLUCINATION_RATE = "hallucination_rate"
 
+
 class RegressionStatus(str, Enum):
     """
     Outcome of a regression comparison.

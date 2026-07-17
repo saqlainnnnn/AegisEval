@@ -29,8 +29,6 @@ class DatasetFactory:
         loader = cls._LOADERS.get(suffix)
 
         if loader is None:
-            raise ValueError(
-                f"Unsupported dataset format: {suffix}"
-            )
+            raise ValueError(f"Unsupported dataset format: {suffix}")
 
         return loader()

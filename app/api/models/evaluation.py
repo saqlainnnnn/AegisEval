@@ -34,9 +34,7 @@ class EvaluationDatasetRequest(BaseModel):
 
     version: str | None = None
 
-    questions: list[
-        EvaluationQuestionRequest
-    ] = Field(
+    questions: list[EvaluationQuestionRequest] = Field(
         min_length=1,
     )
 
@@ -100,9 +98,8 @@ class CreateEvaluationResponse(BaseModel):
     model_name: str
     model_version: str
 
-    metrics: list[
-        EvaluationMetricResponse
-    ]
+    metrics: list[EvaluationMetricResponse]
+
 
 class EvaluationListItemResponse(BaseModel):
     """
@@ -119,9 +116,7 @@ class EvaluationListItemResponse(BaseModel):
     duration_ms: float
 
 
-class EvaluationDetailResponse(
-    EvaluationListItemResponse
-):
+class EvaluationDetailResponse(EvaluationListItemResponse):
     """
     Detailed persisted evaluation run.
     """

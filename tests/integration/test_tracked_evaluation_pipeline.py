@@ -31,23 +31,18 @@ def test_complete_tracked_evaluation_pipeline(
                 "metadata": {
                     "name": "Tracked Integration Dataset",
                     "description": (
-                        "Tests the complete tracked "
-                        "evaluation pipeline"
+                        "Tests the complete tracked " "evaluation pipeline"
                     ),
                     "version": "1.0",
                 },
                 "questions": [
                     {
                         "question": "What is AI?",
-                        "expected_answer": (
-                            "Artificial Intelligence"
-                        ),
+                        "expected_answer": ("Artificial Intelligence"),
                     },
                     {
                         "question": "What is ML?",
-                        "expected_answer": (
-                            "Machine Learning"
-                        ),
+                        "expected_answer": ("Machine Learning"),
                     },
                 ],
             }
@@ -92,9 +87,7 @@ def test_complete_tracked_evaluation_pipeline(
 
     database_path = tmp_path / "mlflow.db"
 
-    tracking_uri = (
-        f"sqlite:///{database_path.as_posix()}"
-    )
+    tracking_uri = f"sqlite:///{database_path.as_posix()}"
 
     experiment_name = "AegisEval Integration Test"
 
@@ -119,39 +112,21 @@ def test_complete_tracked_evaluation_pipeline(
     # Assert: application result
     # -----------------------------
 
-    assert len(
-        result.evaluation.sample_results
-    ) == 2
+    assert len(result.evaluation.sample_results) == 2
 
-    assert (
-        result.metrics.metrics[
-            MetricType.ACCURACY
-        ].value
-        == 1.0
-    )
+    assert result.metrics.metrics[MetricType.ACCURACY].value == 1.0
 
-    assert (
-        result.metrics.metrics[
-            MetricType.FAILURE_RATE
-        ].value
-        == 0.0
-    )
+    assert result.metrics.metrics[MetricType.FAILURE_RATE].value == 0.0
 
     # -----------------------------
     # Assert: MLflow experiment
     # -----------------------------
 
-    experiment = mlflow.get_experiment_by_name(
-        experiment_name
-    )
+    experiment = mlflow.get_experiment_by_name(experiment_name)
 
     assert experiment is not None
 
-    runs = mlflow.search_runs(
-        experiment_ids=[
-            experiment.experiment_id
-        ]
-    )
+    runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
 
     assert len(runs) == 1
 
@@ -161,41 +136,25 @@ def test_complete_tracked_evaluation_pipeline(
     # Assert: MLflow parameters
     # -----------------------------
 
-    assert logged_run[
-        "params.model_name"
-    ] == "Dummy"
+    assert logged_run["params.model_name"] == "Dummy"
 
-    assert logged_run[
-        "params.model_version"
-    ] == "1.0"
+    assert logged_run["params.model_version"] == "1.0"
 
-    assert logged_run[
-        "params.prompt_version"
-    ] == "v1"
+    assert logged_run["params.prompt_version"] == "v1"
 
-    assert logged_run[
-        "params.top_k"
-    ] == "5"
+    assert logged_run["params.top_k"] == "5"
 
-    assert logged_run[
-        "params.dataset_id"
-    ] == str(dataset.id)
+    assert logged_run["params.dataset_id"] == str(dataset.id)
 
     # -----------------------------
     # Assert: MLflow metrics
     # -----------------------------
 
-    assert logged_run[
-        f"metrics.{MetricType.ACCURACY.value}"
-    ] == 1.0
+    assert logged_run[f"metrics.{MetricType.ACCURACY.value}"] == 1.0
 
-    assert logged_run[
-        f"metrics.{MetricType.FAILURE_RATE.value}"
-    ] == 0.0
+    assert logged_run[f"metrics.{MetricType.FAILURE_RATE.value}"] == 0.0
 
-    assert logged_run[
-        f"metrics.{MetricType.LATENCY.value}"
-    ] >= 0
+    assert logged_run[f"metrics.{MetricType.LATENCY.value}"] >= 0
 
     assert logged_run["status"] == "FINISHED"
 
@@ -205,35 +164,19 @@ def test_complete_tracked_evaluation_pipeline(
 
     run_id = logged_run["run_id"]
 
-    artifact_path = (
-        mlflow.artifacts.download_artifacts(
-            run_id=run_id,
-            artifact_path=(
-                "evaluation/evaluation.json"
-            ),
-        )
+    artifact_path = mlflow.artifacts.download_artifacts(
+        run_id=run_id,
+        artifact_path=("evaluation/evaluation.json"),
     )
 
     artifact = Path(artifact_path)
 
     assert artifact.exists()
 
-    artifact_data = json.loads(
-        artifact.read_text(
-            encoding="utf-8"
-        )
-    )
+    artifact_data = json.loads(artifact.read_text(encoding="utf-8"))
 
-    assert (
-        artifact_data["model"]["name"]
-        == "Dummy"
-    )
+    assert artifact_data["model"]["name"] == "Dummy"
 
-    assert (
-        artifact_data["dataset_id"]
-        == str(dataset.id)
-    )
+    assert artifact_data["dataset_id"] == str(dataset.id)
 
-    assert len(
-        artifact_data["sample_results"]
-    ) == 2
+    assert len(artifact_data["sample_results"]) == 2

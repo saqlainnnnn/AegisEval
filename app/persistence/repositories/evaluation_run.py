@@ -21,9 +21,7 @@ class EvaluationRunRepository:
         self,
         evaluation_run: EvaluationRunRecord,
     ) -> None:
-        self._session.add(
-            evaluation_run
-        )
+        self._session.add(evaluation_run)
 
     def get(
         self,
@@ -37,15 +35,8 @@ class EvaluationRunRepository:
     def list_all(
         self,
     ) -> list[EvaluationRunRecord]:
-        statement = (
-            select(EvaluationRunRecord)
-            .order_by(
-                EvaluationRunRecord.started_at.desc()
-            )
+        statement = select(EvaluationRunRecord).order_by(
+            EvaluationRunRecord.started_at.desc()
         )
 
-        return list(
-            self._session.scalars(
-                statement
-            ).all()
-        )
+        return list(self._session.scalars(statement).all())

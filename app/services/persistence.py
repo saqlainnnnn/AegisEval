@@ -36,35 +36,25 @@ class EvaluationPersistenceService:
     ) -> None:
         self._session = session
 
-        self._model_repository = ModelRepository(
-            session
-        )
+        self._model_repository = ModelRepository(session)
 
-        self._dataset_repository = DatasetRepository(
-            session
-        )
+        self._dataset_repository = DatasetRepository(session)
 
-        self._run_repository = EvaluationRunRepository(
-            session
-        )
+        self._run_repository = EvaluationRunRepository(session)
 
     def save(
-    self,
-    dataset: Dataset,
-    result: EvaluationServiceResult,
-    ) -> EvaluationRunRecord: 
+        self,
+        dataset: Dataset,
+        result: EvaluationServiceResult,
+    ) -> EvaluationRunRecord:
         """
         Persist a completed evaluation workflow.
         """
 
         try:
-            model_record = self._get_or_create_model(
-                result.evaluation.model
-            )
+            model_record = self._get_or_create_model(result.evaluation.model)
 
-            dataset_record = self._get_or_create_dataset(
-                dataset
-            )
+            dataset_record = self._get_or_create_dataset(dataset)
 
             evaluation_run = self._build_run_record(
                 result=result,
@@ -72,9 +62,7 @@ class EvaluationPersistenceService:
                 dataset_record=dataset_record,
             )
 
-            self._run_repository.add(
-                evaluation_run
-            )
+            self._run_repository.add(evaluation_run)
 
             self._session.commit()
 
@@ -88,13 +76,9 @@ class EvaluationPersistenceService:
         self,
         model: ModelConfig,
     ) -> ModelRecord:
-        model_id = self._build_model_id(
-            model
-        )
+        model_id = self._build_model_id(model)
 
-        existing = self._model_repository.get(
-            model_id
-        )
+        existing = self._model_repository.get(model_id)
 
         if existing is not None:
             return existing
@@ -122,9 +106,7 @@ class EvaluationPersistenceService:
     ) -> DatasetRecord:
         dataset_id = str(dataset.id)
 
-        existing = self._dataset_repository.get(
-            dataset_id
-        )
+        existing = self._dataset_repository.get(dataset_id)
 
         if existing is not None:
             return existing
@@ -164,12 +146,8 @@ class EvaluationPersistenceService:
                 MetricRecord(
                     metric_type=metric_result.metric.value,
                     value=metric_result.value,
-                    higher_is_better=(
-                        metric_result.higher_is_better
-                    ),
-                    metric_metadata=(
-                        metric_result.metadata
-                    ),
+                    higher_is_better=(metric_result.higher_is_better),
+                    metric_metadata=(metric_result.metadata),
                 )
             )
 
@@ -185,13 +163,9 @@ class EvaluationPersistenceService:
         """
 
         serialized = json.dumps(
-            model.model_dump(
-                mode="json"
-            ),
+            model.model_dump(mode="json"),
             sort_keys=True,
             separators=(",", ":"),
         )
 
-        return hashlib.sha256(
-            serialized.encode("utf-8")
-        ).hexdigest()[:36]
+        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:36]

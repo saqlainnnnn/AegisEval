@@ -23,9 +23,7 @@ def test_load_jsonl_dataset(tmp_path) -> None:
     ) as file:
 
         for sample in samples:
-            file.write(
-                json.dumps(sample)
-            )
+            file.write(json.dumps(sample))
             file.write("\n")
 
     loader = JSONLDatasetLoader()

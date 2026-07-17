@@ -31,15 +31,12 @@ class BenchmarkRunner:
         started_at = datetime.now(UTC)
 
         sample_results = [
-            self._executor.execute(question)
-            for question in dataset.questions
+            self._executor.execute(question) for question in dataset.questions
         ]
 
         finished_at = datetime.now(UTC)
 
-        duration_ms = (
-            finished_at - started_at
-        ).total_seconds() * 1000
+        duration_ms = (finished_at - started_at).total_seconds() * 1000
 
         return EvaluationResult(
             model=self._adapter.config,

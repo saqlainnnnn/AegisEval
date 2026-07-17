@@ -30,8 +30,6 @@ class MetricsEngine:
 
             metric_result = metric.compute(result)
 
-            summary.metrics[
-                metric_result.metric
-            ] = metric_result
+            summary.metrics[metric_result.metric] = metric_result
 
         return summary

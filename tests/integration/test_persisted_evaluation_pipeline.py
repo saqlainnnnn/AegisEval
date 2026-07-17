@@ -39,23 +39,18 @@ def test_complete_persisted_evaluation_pipeline(
                 "metadata": {
                     "name": "Persisted Integration Dataset",
                     "description": (
-                        "Tests evaluation, tracking, "
-                        "and persistence together"
+                        "Tests evaluation, tracking, " "and persistence together"
                     ),
                     "version": "1.0",
                 },
                 "questions": [
                     {
                         "question": "What is AI?",
-                        "expected_answer": (
-                            "Artificial Intelligence"
-                        ),
+                        "expected_answer": ("Artificial Intelligence"),
                     },
                     {
                         "question": "What is ML?",
-                        "expected_answer": (
-                            "Machine Learning"
-                        ),
+                        "expected_answer": ("Machine Learning"),
                     },
                 ],
             }
@@ -63,13 +58,9 @@ def test_complete_persisted_evaluation_pipeline(
         encoding="utf-8",
     )
 
-    loader = DatasetFactory.create(
-        dataset_path
-    )
+    loader = DatasetFactory.create(dataset_path)
 
-    dataset = loader.load(
-        dataset_path
-    )
+    dataset = loader.load(dataset_path)
 
     # Configure the evaluated system.
 
@@ -83,9 +74,7 @@ def test_complete_persisted_evaluation_pipeline(
 
     adapter = DummyAdapter(config)
 
-    runner = BenchmarkRunner(
-        adapter
-    )
+    runner = BenchmarkRunner(adapter)
 
     metrics_engine = MetricsEngine(
         [
@@ -97,18 +86,11 @@ def test_complete_persisted_evaluation_pipeline(
 
     # Configure MLflow tracking.
 
-    mlflow_database_path = (
-        tmp_path / "mlflow.db"
-    )
+    mlflow_database_path = tmp_path / "mlflow.db"
 
-    tracking_uri = (
-        f"sqlite:///"
-        f"{mlflow_database_path.as_posix()}"
-    )
+    tracking_uri = f"sqlite:///" f"{mlflow_database_path.as_posix()}"
 
-    experiment_name = (
-        "AegisEval Persistence Integration Test"
-    )
+    experiment_name = "AegisEval Persistence Integration Test"
 
     tracker = MLflowTracker(
         experiment_name=experiment_name,
@@ -125,167 +107,82 @@ def test_complete_persisted_evaluation_pipeline(
 
     # Execute evaluation and tracking.
 
-    result = evaluation_service.evaluate(
-        dataset
-    )
+    result = evaluation_service.evaluate(dataset)
 
     # Configure the application database.
 
-    application_engine = (
-        create_database_engine(
-            "sqlite+pysqlite:///:memory:"
-        )
-    )
+    application_engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
-    Base.metadata.create_all(
-        application_engine
-    )
+    Base.metadata.create_all(application_engine)
 
-    session_factory = (
-        create_session_factory(
-            application_engine
-        )
-    )
+    session_factory = create_session_factory(application_engine)
 
     # Persist the completed evaluation.
 
     with session_factory() as session:
-        persistence_service = (
-            EvaluationPersistenceService(
-                session
-            )
-        )
+        persistence_service = EvaluationPersistenceService(session)
 
-        stored_run = (
-            persistence_service.save(
-                dataset=dataset,
-                result=result,
-            )
+        stored_run = persistence_service.save(
+            dataset=dataset,
+            result=result,
         )
 
         # Verify application database.
 
-        assert stored_run.id == str(
-            result.evaluation.id
-        )
+        assert stored_run.id == str(result.evaluation.id)
 
         assert result.tracking_run_id is not None
 
-        assert (
-            stored_run.mlflow_run_id
-            == result.tracking_run_id
-        )
+        assert stored_run.mlflow_run_id == result.tracking_run_id
 
         assert stored_run.model.name == "Dummy"
 
-        assert (
-            stored_run.dataset.name
-            == "Persisted Integration Dataset"
-        )
+        assert stored_run.dataset.name == "Persisted Integration Dataset"
 
         assert len(stored_run.metrics) == 3
 
-        metric_types = {
-            metric.metric_type
-            for metric in stored_run.metrics
-        }
+        metric_types = {metric.metric_type for metric in stored_run.metrics}
 
-        assert (
-            MetricType.ACCURACY.value
-            in metric_types
-        )
+        assert MetricType.ACCURACY.value in metric_types
 
-        assert (
-            MetricType.LATENCY.value
-            in metric_types
-        )
+        assert MetricType.LATENCY.value in metric_types
 
-        assert (
-            MetricType.FAILURE_RATE.value
-            in metric_types
-        )
+        assert MetricType.FAILURE_RATE.value in metric_types
 
-        assert (
-            session.query(ModelRecord).count()
-            == 1
-        )
+        assert session.query(ModelRecord).count() == 1
 
-        assert (
-            session.query(DatasetRecord).count()
-            == 1
-        )
+        assert session.query(DatasetRecord).count() == 1
 
-        assert (
-            session.query(
-                EvaluationRunRecord
-            ).count()
-            == 1
-        )
+        assert session.query(EvaluationRunRecord).count() == 1
 
-        assert (
-            session.query(MetricRecord).count()
-            == 3
-        )
+        assert session.query(MetricRecord).count() == 3
 
     # Verify MLflow independently.
 
-    experiment = (
-        mlflow.get_experiment_by_name(
-            experiment_name
-        )
-    )
+    experiment = mlflow.get_experiment_by_name(experiment_name)
 
     assert experiment is not None
 
-    runs = mlflow.search_runs(
-        experiment_ids=[
-            experiment.experiment_id
-        ]
-    )
+    runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
 
     assert len(runs) == 1
 
     logged_run = runs.iloc[0]
 
-    assert (
-    logged_run["run_id"]
-    == result.tracking_run_id
-    )
+    assert logged_run["run_id"] == result.tracking_run_id
 
-    assert (
-        stored_run.mlflow_run_id
-        == logged_run["run_id"]
-    )
+    assert stored_run.mlflow_run_id == logged_run["run_id"]
     assert logged_run["status"] == "FINISHED"
 
-    assert (
-        logged_run["params.model_name"]
-        == "Dummy"
+    assert logged_run["params.model_name"] == "Dummy"
+
+    assert logged_run[f"metrics.{MetricType.ACCURACY.value}"] == 1.0
+
+    assert logged_run[f"metrics.{MetricType.FAILURE_RATE.value}"] == 0.0
+
+    artifact_path = mlflow.artifacts.download_artifacts(
+        run_id=logged_run["run_id"],
+        artifact_path=("evaluation/evaluation.json"),
     )
 
-    assert (
-        logged_run[
-            f"metrics.{MetricType.ACCURACY.value}"
-        ]
-        == 1.0
-    )
-
-    assert (
-        logged_run[
-            f"metrics.{MetricType.FAILURE_RATE.value}"
-        ]
-        == 0.0
-    )
-
-    artifact_path = (
-        mlflow.artifacts.download_artifacts(
-            run_id=logged_run["run_id"],
-            artifact_path=(
-                "evaluation/evaluation.json"
-            ),
-        )
-    )
-
-    assert Path(
-        artifact_path
-    ).exists()
+    assert Path(artifact_path).exists()

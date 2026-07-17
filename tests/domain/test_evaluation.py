@@ -5,7 +5,6 @@ from app.domain.evaluation import (
     EvaluationSampleResult,
     ModelConfig,
 )
-from app.domain.prediction import Prediction
 
 
 def test_model_config_creation() -> None:

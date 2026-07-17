@@ -38,7 +38,6 @@ from app.services.persistence import (
 )
 from app.tracking.base import BaseExperimentTracker
 
-
 router = APIRouter(
     prefix="/evaluations",
     tags=["evaluations"],
@@ -52,12 +51,8 @@ router = APIRouter(
 )
 def create_evaluation(
     request: CreateEvaluationRequest,
-    metrics_engine: MetricsEngine = Depends(
-        get_metrics_engine
-    ),
-    tracker: BaseExperimentTracker = Depends(
-        get_experiment_tracker
-    ),
+    metrics_engine: MetricsEngine = Depends(get_metrics_engine),
+    tracker: BaseExperimentTracker = Depends(get_experiment_tracker),
     persistence_service: EvaluationPersistenceService = Depends(
         get_persistence_service
     ),
@@ -75,9 +70,7 @@ def create_evaluation(
         questions=[
             Question(
                 question=question.question,
-                expected_answer=(
-                    question.expected_answer
-                ),
+                expected_answer=(question.expected_answer),
             )
             for question in request.dataset.questions
         ],
@@ -87,24 +80,16 @@ def create_evaluation(
         name=request.model.name,
         version=request.model.version,
         model_type=request.model.model_type,
-        embedding_model=(
-            request.model.embedding_model
-        ),
-        prompt_version=(
-            request.model.prompt_version
-        ),
+        embedding_model=(request.model.embedding_model),
+        prompt_version=(request.model.prompt_version),
         retriever=request.model.retriever,
         chunk_size=request.model.chunk_size,
         top_k=request.model.top_k,
     )
 
-    adapter = DummyAdapter(
-        model_config
-    )
+    adapter = DummyAdapter(model_config)
 
-    runner = BenchmarkRunner(
-        adapter
-    )
+    runner = BenchmarkRunner(adapter)
 
     evaluation_service = EvaluationService(
         runner=runner,
@@ -112,9 +97,7 @@ def create_evaluation(
         tracker=tracker,
     )
 
-    result = evaluation_service.evaluate(
-        dataset
-    )
+    result = evaluation_service.evaluate(dataset)
 
     persistence_service.save(
         dataset=dataset,
@@ -125,9 +108,7 @@ def create_evaluation(
         EvaluationMetricResponse(
             name=metric.metric.value,
             value=metric.value,
-            higher_is_better=(
-                metric.higher_is_better
-            ),
+            higher_is_better=(metric.higher_is_better),
         )
         for metric in result.metrics.metrics.values()
     ]
@@ -137,23 +118,17 @@ def create_evaluation(
         dataset_id=dataset.id,
         tracking_run_id=result.tracking_run_id,
         model_name=result.evaluation.model.name,
-        model_version=(
-            result.evaluation.model.version
-        ),
+        model_version=(result.evaluation.model.version),
         metrics=metrics,
     )
 
 
 @router.get(
     "",
-    response_model=list[
-        EvaluationListItemResponse
-    ],
+    response_model=list[EvaluationListItemResponse],
 )
 def list_evaluations(
-    repository: EvaluationRunRepository = Depends(
-        get_evaluation_run_repository
-    ),
+    repository: EvaluationRunRepository = Depends(get_evaluation_run_repository),
 ) -> list[EvaluationListItemResponse]:
     """
     Return all persisted evaluation runs.
@@ -182,17 +157,13 @@ def list_evaluations(
 )
 def get_evaluation(
     evaluation_id: str,
-    repository: EvaluationRunRepository = Depends(
-        get_evaluation_run_repository
-    ),
+    repository: EvaluationRunRepository = Depends(get_evaluation_run_repository),
 ) -> EvaluationDetailResponse:
     """
     Return one persisted evaluation run.
     """
 
-    run = repository.get(
-        evaluation_id
-    )
+    run = repository.get(evaluation_id)
 
     if run is None:
         raise HTTPException(
@@ -213,9 +184,7 @@ def get_evaluation(
             EvaluationMetricResponse(
                 name=metric.metric_type,
                 value=metric.value,
-                higher_is_better=(
-                    metric.higher_is_better
-                ),
+                higher_is_better=(metric.higher_is_better),
             )
             for metric in run.metrics
         ],

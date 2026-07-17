@@ -7,9 +7,7 @@ def test_health_check() -> None:
     application = create_app()
 
     with TestClient(application) as client:
-        response = client.get(
-            "/api/v1/health"
-        )
+        response = client.get("/api/v1/health")
 
     assert response.status_code == 200
 

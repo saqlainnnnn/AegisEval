@@ -16,8 +16,7 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title=settings.app_name,
         description=(
-            "Evaluation and regression testing platform "
-            "for AI and RAG systems."
+            "Evaluation and regression testing platform " "for AI and RAG systems."
         ),
         version=settings.app_version,
     )

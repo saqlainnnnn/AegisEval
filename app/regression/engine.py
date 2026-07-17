@@ -33,9 +33,7 @@ class RegressionEngine:
         candidate_run_id: str,
         baseline: MetricSummary,
         candidate: MetricSummary,
-        thresholds: list[
-            RegressionThreshold
-        ],
+        thresholds: list[RegressionThreshold],
     ) -> RegressionResult:
         """
         Compare candidate metrics against baseline metrics.
@@ -53,8 +51,7 @@ class RegressionEngine:
         status = (
             RegressionStatus.REGRESSION
             if any(
-                comparison.status
-                == RegressionStatus.REGRESSION
+                comparison.status == RegressionStatus.REGRESSION
                 for comparison in comparisons
             )
             else RegressionStatus.PASSED
@@ -92,35 +89,21 @@ class RegressionEngine:
             summary_name="candidate",
         )
 
-        if (
-            baseline_result.higher_is_better
-            != candidate_result.higher_is_better
-        ):
-            raise ValueError(
-                "Metric direction mismatch for "
-                f"{metric.value}."
-            )
+        if baseline_result.higher_is_better != candidate_result.higher_is_better:
+            raise ValueError("Metric direction mismatch for " f"{metric.value}.")
 
-        absolute_change = (
-            candidate_result.value
-            - baseline_result.value
-        )
+        absolute_change = candidate_result.value - baseline_result.value
 
         relative_change = (
             None
             if baseline_result.value == 0
-            else (
-                absolute_change
-                / abs(baseline_result.value)
-            )
+            else (absolute_change / abs(baseline_result.value))
         )
 
         status = self._policy.evaluate(
             baseline_value=baseline_result.value,
             candidate_value=candidate_result.value,
-            higher_is_better=(
-                baseline_result.higher_is_better
-            ),
+            higher_is_better=(baseline_result.higher_is_better),
             threshold=threshold,
         )
 
@@ -145,14 +128,11 @@ class RegressionEngine:
         Return a metric result or fail with a clear error.
         """
 
-        result = summary.metrics.get(
-            metric
-        )
+        result = summary.metrics.get(metric)
 
         if result is None:
             raise ValueError(
-                f"Metric {metric.value} is missing "
-                f"from {summary_name} summary."
+                f"Metric {metric.value} is missing " f"from {summary_name} summary."
             )
 
         return result

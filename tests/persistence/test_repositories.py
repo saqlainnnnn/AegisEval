@@ -16,15 +16,11 @@ from app.persistence.repositories import (
 
 
 def _create_session():
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
-    session_factory = create_session_factory(
-        engine
-    )
+    session_factory = create_session_factory(engine)
 
     return session_factory()
 
@@ -60,9 +56,7 @@ def test_dataset_repository_add_and_get() -> None:
     session = _create_session()
 
     try:
-        repository = DatasetRepository(
-            session
-        )
+        repository = DatasetRepository(session)
 
         dataset = DatasetRecord(
             id="dataset-1",
@@ -75,9 +69,7 @@ def test_dataset_repository_add_and_get() -> None:
         repository.add(dataset)
         session.commit()
 
-        stored = repository.get(
-            "dataset-1"
-        )
+        stored = repository.get("dataset-1")
 
         assert stored is not None
         assert stored.name == "Test Dataset"
@@ -90,17 +82,11 @@ def test_evaluation_run_repository() -> None:
     session = _create_session()
 
     try:
-        model_repository = ModelRepository(
-            session
-        )
+        model_repository = ModelRepository(session)
 
-        dataset_repository = (
-            DatasetRepository(session)
-        )
+        dataset_repository = DatasetRepository(session)
 
-        run_repository = (
-            EvaluationRunRepository(session)
-        )
+        run_repository = EvaluationRunRepository(session)
 
         now = datetime.now(UTC)
 
@@ -124,26 +110,20 @@ def test_evaluation_run_repository() -> None:
             )
         )
 
-        evaluation_run = (
-            EvaluationRunRecord(
-                id="run-1",
-                model_id="model-1",
-                dataset_id="dataset-1",
-                started_at=now,
-                finished_at=now,
-                duration_ms=10.0,
-            )
+        evaluation_run = EvaluationRunRecord(
+            id="run-1",
+            model_id="model-1",
+            dataset_id="dataset-1",
+            started_at=now,
+            finished_at=now,
+            duration_ms=10.0,
         )
 
-        run_repository.add(
-            evaluation_run
-        )
+        run_repository.add(evaluation_run)
 
         session.commit()
 
-        stored = run_repository.get(
-            "run-1"
-        )
+        stored = run_repository.get("run-1")
 
         assert stored is not None
         assert stored.model_id == "model-1"

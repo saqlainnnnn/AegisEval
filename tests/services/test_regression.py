@@ -55,38 +55,29 @@ def _build_dataset(
     return Dataset(
         metadata=DatasetMetadata(
             name=name,
-            description=(
-                "Regression service test dataset"
-            ),
+            description=("Regression service test dataset"),
             version="1.0",
         ),
         questions=[
             Question(
                 question="What is AI?",
-                expected_answer=(
-                    "Artificial Intelligence"
-                ),
+                expected_answer=("Artificial Intelligence"),
             )
         ],
     )
 
 
-def _build_evaluation_service(
-) -> EvaluationService:
+def _build_evaluation_service() -> EvaluationService:
     config = ModelConfig(
         name="Dummy",
         version="1.0",
         model_type=ModelType.CUSTOM,
     )
 
-    adapter = DummyAdapter(
-        config
-    )
+    adapter = DummyAdapter(config)
 
     return EvaluationService(
-        runner=BenchmarkRunner(
-            adapter
-        ),
+        runner=BenchmarkRunner(adapter),
         metrics_engine=MetricsEngine(
             [
                 AccuracyMetric(),
@@ -101,69 +92,31 @@ def _build_regression_service(
     session,
 ) -> RegressionService:
     return RegressionService(
-        evaluation_repository=(
-            EvaluationRunRepository(
-                session
-            )
-        ),
-        regression_repository=(
-            RegressionRunRepository(
-                session
-            )
-        ),
-        regression_engine=(
-            RegressionEngine(
-                RegressionThresholdPolicy()
-            )
-        ),
+        evaluation_repository=(EvaluationRunRepository(session)),
+        regression_repository=(RegressionRunRepository(session)),
+        regression_engine=(RegressionEngine(RegressionThresholdPolicy())),
     )
 
 
 def test_compare_persisted_evaluation_runs() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
-    Base.metadata.create_all(
-        engine
-    )
+    Base.metadata.create_all(engine)
 
-    session_factory = (
-        create_session_factory(
-            engine
-        )
-    )
+    session_factory = create_session_factory(engine)
 
-    evaluation_service = (
-        _build_evaluation_service()
-    )
+    evaluation_service = _build_evaluation_service()
 
-    baseline_dataset = _build_dataset(
-        "Baseline Dataset"
-    )
+    baseline_dataset = _build_dataset("Baseline Dataset")
 
-    candidate_dataset = _build_dataset(
-        "Candidate Dataset"
-    )
+    candidate_dataset = _build_dataset("Candidate Dataset")
 
-    baseline_result = (
-        evaluation_service.evaluate(
-            baseline_dataset
-        )
-    )
+    baseline_result = evaluation_service.evaluate(baseline_dataset)
 
-    candidate_result = (
-        evaluation_service.evaluate(
-            candidate_dataset
-        )
-    )
+    candidate_result = evaluation_service.evaluate(candidate_dataset)
 
     with session_factory() as session:
-        persistence_service = (
-            EvaluationPersistenceService(
-                session
-            )
-        )
+        persistence_service = EvaluationPersistenceService(session)
 
         persistence_service.save(
             dataset=baseline_dataset,
@@ -175,52 +128,26 @@ def test_compare_persisted_evaluation_runs() -> None:
             result=candidate_result,
         )
 
-        regression_repository = (
-            RegressionRunRepository(
-                session
-            )
-        )
+        regression_repository = RegressionRunRepository(session)
 
         service = RegressionService(
-            evaluation_repository=(
-                EvaluationRunRepository(
-                    session
-                )
-            ),
-            regression_repository=(
-                regression_repository
-            ),
-            regression_engine=(
-                RegressionEngine(
-                    RegressionThresholdPolicy()
-                )
-            ),
+            evaluation_repository=(EvaluationRunRepository(session)),
+            regression_repository=(regression_repository),
+            regression_engine=(RegressionEngine(RegressionThresholdPolicy())),
         )
 
         service_result = service.compare(
-            baseline_run_id=str(
-                baseline_result.evaluation.id
-            ),
-            candidate_run_id=str(
-                candidate_result.evaluation.id
-            ),
+            baseline_run_id=str(baseline_result.evaluation.id),
+            candidate_run_id=str(candidate_result.evaluation.id),
             thresholds=[
                 RegressionThreshold(
-                    metric=(
-                        MetricType.ACCURACY
-                    ),
-                    threshold_type=(
-                        ThresholdType.ABSOLUTE
-                    ),
+                    metric=(MetricType.ACCURACY),
+                    threshold_type=(ThresholdType.ABSOLUTE),
                     value=0.05,
                 ),
                 RegressionThreshold(
-                    metric=(
-                        MetricType.LATENCY
-                    ),
-                    threshold_type=(
-                        ThresholdType.ABSOLUTE
-                    ),
+                    metric=(MetricType.LATENCY),
+                    threshold_type=(ThresholdType.ABSOLUTE),
                     value=1000.0,
                 ),
             ],
@@ -230,86 +157,44 @@ def test_compare_persisted_evaluation_runs() -> None:
 
         assert service_result.regression_id
 
-        assert (
-            result.status
-            == RegressionStatus.PASSED
-        )
+        assert result.status == RegressionStatus.PASSED
 
-        stored_regressions = (
-            regression_repository.list_all()
-        )
+        stored_regressions = regression_repository.list_all()
 
-        assert len(
-            stored_regressions
-        ) == 1
+        assert len(stored_regressions) == 1
 
         stored = stored_regressions[0]
 
-        assert (
-            stored.id
-            == service_result.regression_id
-        )
+        assert stored.id == service_result.regression_id
 
-        assert (
-            stored.baseline_run_id
-            == str(
-                baseline_result.evaluation.id
-            )
-        )
+        assert stored.baseline_run_id == str(baseline_result.evaluation.id)
 
-        assert (
-            stored.candidate_run_id
-            == str(
-                candidate_result.evaluation.id
-            )
-        )
+        assert stored.candidate_run_id == str(candidate_result.evaluation.id)
 
-        assert len(
-            stored.comparisons
-        ) == 2
+        assert len(stored.comparisons) == 2
 
 
 def test_compare_rejects_missing_baseline() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
-    Base.metadata.create_all(
-        engine
-    )
+    Base.metadata.create_all(engine)
 
-    session_factory = (
-        create_session_factory(
-            engine
-        )
-    )
+    session_factory = create_session_factory(engine)
 
     with session_factory() as session:
-        service = (
-            _build_regression_service(
-                session
-            )
-        )
+        service = _build_regression_service(session)
 
         with pytest.raises(
             ValueError,
             match="Baseline evaluation run",
         ):
             service.compare(
-                baseline_run_id=(
-                    "missing-baseline"
-                ),
-                candidate_run_id=(
-                    "missing-candidate"
-                ),
+                baseline_run_id=("missing-baseline"),
+                candidate_run_id=("missing-candidate"),
                 thresholds=[
                     RegressionThreshold(
-                        metric=(
-                            MetricType.ACCURACY
-                        ),
-                        threshold_type=(
-                            ThresholdType.ABSOLUTE
-                        ),
+                        metric=(MetricType.ACCURACY),
+                        threshold_type=(ThresholdType.ABSOLUTE),
                         value=0.05,
                     )
                 ],
@@ -317,67 +202,37 @@ def test_compare_rejects_missing_baseline() -> None:
 
 
 def test_compare_rejects_missing_candidate() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
-    Base.metadata.create_all(
-        engine
-    )
+    Base.metadata.create_all(engine)
 
-    session_factory = (
-        create_session_factory(
-            engine
-        )
-    )
+    session_factory = create_session_factory(engine)
 
-    evaluation_service = (
-        _build_evaluation_service()
-    )
+    evaluation_service = _build_evaluation_service()
 
-    baseline_dataset = _build_dataset(
-        "Baseline Dataset"
-    )
+    baseline_dataset = _build_dataset("Baseline Dataset")
 
-    baseline_result = (
-        evaluation_service.evaluate(
-            baseline_dataset
-        )
-    )
+    baseline_result = evaluation_service.evaluate(baseline_dataset)
 
     with session_factory() as session:
-        EvaluationPersistenceService(
-            session
-        ).save(
+        EvaluationPersistenceService(session).save(
             dataset=baseline_dataset,
             result=baseline_result,
         )
 
-        service = (
-            _build_regression_service(
-                session
-            )
-        )
+        service = _build_regression_service(session)
 
         with pytest.raises(
             ValueError,
             match="Candidate evaluation run",
         ):
             service.compare(
-                baseline_run_id=str(
-                    baseline_result.evaluation.id
-                ),
-                candidate_run_id=(
-                    "missing-candidate"
-                ),
+                baseline_run_id=str(baseline_result.evaluation.id),
+                candidate_run_id=("missing-candidate"),
                 thresholds=[
                     RegressionThreshold(
-                        metric=(
-                            MetricType.ACCURACY
-                        ),
-                        threshold_type=(
-                            ThresholdType.ABSOLUTE
-                        ),
+                        metric=(MetricType.ACCURACY),
+                        threshold_type=(ThresholdType.ABSOLUTE),
                         value=0.05,
                     )
                 ],

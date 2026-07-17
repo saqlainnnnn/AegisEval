@@ -61,9 +61,7 @@ class EvaluationRunRecord(Base):
         back_populates="evaluation_runs",
     )
 
-    metrics: Mapped[
-        list["MetricRecord"]
-    ] = relationship(
+    metrics: Mapped[list["MetricRecord"]] = relationship(
         back_populates="evaluation_run",
         cascade="all, delete-orphan",
     )

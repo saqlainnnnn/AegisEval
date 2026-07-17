@@ -42,67 +42,41 @@ class RegressionService:
         regression_repository: RegressionRunRepository,
         regression_engine: RegressionEngine,
     ) -> None:
-        self._evaluation_repository = (
-            evaluation_repository
-        )
+        self._evaluation_repository = evaluation_repository
 
-        self._regression_repository = (
-            regression_repository
-        )
+        self._regression_repository = regression_repository
 
-        self._regression_engine = (
-            regression_engine
-        )
+        self._regression_engine = regression_engine
 
     def compare(
         self,
         *,
         baseline_run_id: str,
         candidate_run_id: str,
-        thresholds: list[
-            RegressionThreshold
-        ],
+        thresholds: list[RegressionThreshold],
     ) -> RegressionServiceResult:
         """
         Compare two persisted evaluation runs,
         persist the result, and return its ID.
         """
 
-        baseline_run = (
-            self._evaluation_repository.get(
-                baseline_run_id
-            )
-        )
+        baseline_run = self._evaluation_repository.get(baseline_run_id)
 
         if baseline_run is None:
             raise ValueError(
-                "Baseline evaluation run "
-                f"{baseline_run_id} was not found."
+                "Baseline evaluation run " f"{baseline_run_id} was not found."
             )
 
-        candidate_run = (
-            self._evaluation_repository.get(
-                candidate_run_id
-            )
-        )
+        candidate_run = self._evaluation_repository.get(candidate_run_id)
 
         if candidate_run is None:
             raise ValueError(
-                "Candidate evaluation run "
-                f"{candidate_run_id} was not found."
+                "Candidate evaluation run " f"{candidate_run_id} was not found."
             )
 
-        baseline_summary = (
-            self._build_metric_summary(
-                baseline_run.metrics
-            )
-        )
+        baseline_summary = self._build_metric_summary(baseline_run.metrics)
 
-        candidate_summary = (
-            self._build_metric_summary(
-                candidate_run.metrics
-            )
-        )
+        candidate_summary = self._build_metric_summary(candidate_run.metrics)
 
         result = self._regression_engine.compare(
             baseline_run_id=baseline_run_id,
@@ -112,11 +86,7 @@ class RegressionService:
             thresholds=thresholds,
         )
 
-        stored_record = (
-            self._regression_repository.save(
-                result
-            )
-        )
+        stored_record = self._regression_repository.save(result)
 
         return RegressionServiceResult(
             regression_id=stored_record.id,
@@ -133,20 +103,12 @@ class RegressionService:
         """
 
         metrics = {
-            MetricType(
-                record.metric_type
-            ): MetricResult(
-                metric=MetricType(
-                    record.metric_type
-                ),
+            MetricType(record.metric_type): MetricResult(
+                metric=MetricType(record.metric_type),
                 value=record.value,
-                higher_is_better=(
-                    record.higher_is_better
-                ),
+                higher_is_better=(record.higher_is_better),
             )
             for record in metric_records
         }
 
-        return MetricSummary(
-            metrics=metrics
-        )
+        return MetricSummary(metrics=metrics)

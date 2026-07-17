@@ -12,15 +12,11 @@ from app.database.session import create_session_factory
 
 
 def test_create_database_schema() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
-    table_names = set(
-        Base.metadata.tables.keys()
-    )
+    table_names = set(Base.metadata.tables.keys())
 
     assert "models" in table_names
     assert "datasets" in table_names
@@ -29,15 +25,11 @@ def test_create_database_schema() -> None:
 
 
 def test_persist_complete_evaluation_relationships() -> None:
-    engine = create_database_engine(
-        "sqlite+pysqlite:///:memory:"
-    )
+    engine = create_database_engine("sqlite+pysqlite:///:memory:")
 
     Base.metadata.create_all(engine)
 
-    session_factory = create_session_factory(
-        engine
-    )
+    session_factory = create_session_factory(engine)
 
     now = datetime.now(UTC)
 

@@ -56,15 +56,11 @@ class RegressionResult(BaseModel):
 
     status: RegressionStatus
 
-    comparisons: list[
-        MetricComparison
-    ] = Field(
+    comparisons: list[MetricComparison] = Field(
         min_length=1,
     )
 
-    @model_validator(
-        mode="after"
-    )
+    @model_validator(mode="after")
     def validate_status(
         self,
     ) -> RegressionResult:
@@ -74,21 +70,17 @@ class RegressionResult(BaseModel):
         """
 
         has_regression = any(
-            comparison.status
-            == RegressionStatus.REGRESSION
+            comparison.status == RegressionStatus.REGRESSION
             for comparison in self.comparisons
         )
 
         expected_status = (
-            RegressionStatus.REGRESSION
-            if has_regression
-            else RegressionStatus.PASSED
+            RegressionStatus.REGRESSION if has_regression else RegressionStatus.PASSED
         )
 
         if self.status != expected_status:
             raise ValueError(
-                "Regression result status does not "
-                "match comparison statuses."
+                "Regression result status does not " "match comparison statuses."
             )
 
         return self

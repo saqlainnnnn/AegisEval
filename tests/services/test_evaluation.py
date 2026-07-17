@@ -134,30 +134,13 @@ def test_evaluation_service_runs_complete_workflow() -> None:
 
     result = service.evaluate(dataset)
 
-    assert len(
-        result.evaluation.sample_results
-    ) == 2
+    assert len(result.evaluation.sample_results) == 2
 
-    assert (
-        result.metrics.metrics[
-            MetricType.ACCURACY
-        ].value
-        == 1.0
-    )
+    assert result.metrics.metrics[MetricType.ACCURACY].value == 1.0
 
-    assert (
-        result.metrics.metrics[
-            MetricType.FAILURE_RATE
-        ].value
-        == 0.0
-    )
+    assert result.metrics.metrics[MetricType.FAILURE_RATE].value == 0.0
 
-    assert (
-        result.metrics.metrics[
-            MetricType.LATENCY
-        ].value
-        >= 0
-    )
+    assert result.metrics.metrics[MetricType.LATENCY].value >= 0
 
 
 def test_evaluation_service_returns_model_config() -> None:

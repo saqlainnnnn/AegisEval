@@ -34,7 +34,4 @@ class JSONDatasetLoader(BaseDatasetLoader):
         self,
         raw_data: Any,
     ) -> list[Question]:
-        return [
-            Question(**question)
-            for question in raw_data["questions"]
-        ]
+        return [Question(**question) for question in raw_data["questions"]]

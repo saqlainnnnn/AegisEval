@@ -47,23 +47,15 @@ class EvaluationService:
 
         evaluation = self._runner.run(dataset)
 
-        metrics = self._metrics_engine.compute(
-            evaluation
-        )
+        metrics = self._metrics_engine.compute(evaluation)
 
         tracking_run_id: str | None = None
 
         if self._tracker is not None:
-            with self._tracker.start_run(
-                evaluation
-            ) as tracking_run:
-                tracking_run_id = (
-                    tracking_run.run_id
-                )
+            with self._tracker.start_run(evaluation) as tracking_run:
+                tracking_run_id = tracking_run.run_id
 
-                tracking_run.log_metrics(
-                    metrics
-                )
+                tracking_run.log_metrics(metrics)
 
                 tracking_run.log_evaluation()
 

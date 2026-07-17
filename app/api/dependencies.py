@@ -23,7 +23,6 @@ from app.services.persistence import (
 from app.tracking.mlflow_tracker import MLflowTracker
 
 from app.persistence.repositories import (
-    EvaluationRunRepository,
     RegressionRunRepository,
 )
 from app.regression.engine import RegressionEngine
@@ -41,9 +40,7 @@ def get_database_engine() -> Engine:
 
     settings = get_settings()
 
-    return create_database_engine(
-        settings.database_url
-    )
+    return create_database_engine(settings.database_url)
 
 
 @lru_cache
@@ -54,9 +51,7 @@ def get_session_factory() -> sessionmaker[Session]:
 
     engine = get_database_engine()
 
-    return create_session_factory(
-        engine
-    )
+    return create_session_factory(engine)
 
 
 def get_database_session() -> Generator[
@@ -96,54 +91,39 @@ def get_experiment_tracker() -> MLflowTracker:
     settings = get_settings()
 
     return MLflowTracker(
-        experiment_name=(
-            settings.mlflow_experiment_name
-        ),
-        tracking_uri=(
-            settings.mlflow_tracking_uri
-        ),
+        experiment_name=(settings.mlflow_experiment_name),
+        tracking_uri=(settings.mlflow_tracking_uri),
     )
 
 
 def get_persistence_service(
-    session: Session = Depends(
-        get_database_session
-    ),
+    session: Session = Depends(get_database_session),
 ) -> EvaluationPersistenceService:
     """
     Create the evaluation persistence service.
     """
 
-    return EvaluationPersistenceService(
-        session
-    )
+    return EvaluationPersistenceService(session)
 
 
 def get_evaluation_run_repository(
-    session: Session = Depends(
-        get_database_session
-    ),
+    session: Session = Depends(get_database_session),
 ) -> EvaluationRunRepository:
     """
     Create the evaluation run repository.
     """
 
-    return EvaluationRunRepository(
-        session
-    )
+    return EvaluationRunRepository(session)
+
 
 def get_regression_run_repository(
-    session: Session = Depends(
-        get_database_session
-    ),
+    session: Session = Depends(get_database_session),
 ) -> RegressionRunRepository:
     """
     Create the regression run repository.
     """
 
-    return RegressionRunRepository(
-        session
-    )
+    return RegressionRunRepository(session)
 
 
 def get_regression_engine() -> RegressionEngine:
@@ -151,9 +131,7 @@ def get_regression_engine() -> RegressionEngine:
     Create the regression comparison engine.
     """
 
-    return RegressionEngine(
-        RegressionThresholdPolicy()
-    )
+    return RegressionEngine(RegressionThresholdPolicy())
 
 
 def get_regression_service(
@@ -163,22 +141,14 @@ def get_regression_service(
     regression_repository: RegressionRunRepository = Depends(
         get_regression_run_repository
     ),
-    regression_engine: RegressionEngine = Depends(
-        get_regression_engine
-    ),
+    regression_engine: RegressionEngine = Depends(get_regression_engine),
 ) -> RegressionService:
     """
     Create the regression orchestration service.
     """
 
     return RegressionService(
-        evaluation_repository=(
-            evaluation_repository
-        ),
-        regression_repository=(
-            regression_repository
-        ),
-        regression_engine=(
-            regression_engine
-        ),
+        evaluation_repository=(evaluation_repository),
+        regression_repository=(regression_repository),
+        regression_engine=(regression_engine),
     )

@@ -26,36 +26,21 @@ def _create_test_client(
     temporary SQLite database.
     """
 
-    database_path = (
-        tmp_path / database_name
-    )
+    database_path = tmp_path / database_name
 
-    database_url = (
-        "sqlite+pysqlite:///"
-        f"{database_path.as_posix()}"
-    )
+    database_url = "sqlite+pysqlite:///" f"{database_path.as_posix()}"
 
-    engine = create_database_engine(
-        database_url
-    )
+    engine = create_database_engine(database_url)
 
-    Base.metadata.create_all(
-        engine
-    )
+    Base.metadata.create_all(engine)
 
-    session_factory = (
-        create_session_factory(
-            engine
-        )
-    )
+    session_factory = create_session_factory(engine)
 
     def override_database_session():
         with session_factory() as session:
             yield session
 
-    app.dependency_overrides[
-        get_database_session
-    ] = override_database_session
+    app.dependency_overrides[get_database_session] = override_database_session
 
     return TestClient(app)
 
@@ -77,16 +62,12 @@ def _evaluation_payload(
         },
         "dataset": {
             "name": dataset_name,
-            "description": (
-                "Regression API test dataset"
-            ),
+            "description": ("Regression API test dataset"),
             "version": "1.0",
             "questions": [
                 {
                     "question": "What is AI?",
-                    "expected_answer": (
-                        "Artificial Intelligence"
-                    ),
+                    "expected_answer": ("Artificial Intelligence"),
                 }
             ],
         },
@@ -103,16 +84,12 @@ def _create_evaluation(
 
     response = client.post(
         "/api/v1/evaluations",
-        json=_evaluation_payload(
-            dataset_name
-        ),
+        json=_evaluation_payload(dataset_name),
     )
 
     assert response.status_code == 201
 
-    return response.json()[
-        "evaluation_id"
-    ]
+    return response.json()["evaluation_id"]
 
 
 def _regression_payload(
@@ -125,25 +102,17 @@ def _regression_payload(
     """
 
     return {
-        "baseline_run_id": (
-            baseline_run_id
-        ),
-        "candidate_run_id": (
-            candidate_run_id
-        ),
+        "baseline_run_id": (baseline_run_id),
+        "candidate_run_id": (candidate_run_id),
         "thresholds": [
             {
                 "metric": "accuracy",
-                "threshold_type": (
-                    "absolute"
-                ),
+                "threshold_type": ("absolute"),
                 "value": 0.05,
             },
             {
                 "metric": "latency",
-                "threshold_type": (
-                    "absolute"
-                ),
+                "threshold_type": ("absolute"),
                 "value": 1000.0,
             },
         ],
@@ -160,62 +129,39 @@ def test_create_regression(
 
     try:
         with client:
-            baseline_run_id = (
-                _create_evaluation(
-                    client,
-                    "Baseline Dataset",
-                )
+            baseline_run_id = _create_evaluation(
+                client,
+                "Baseline Dataset",
             )
 
-            candidate_run_id = (
-                _create_evaluation(
-                    client,
-                    "Candidate Dataset",
-                )
+            candidate_run_id = _create_evaluation(
+                client,
+                "Candidate Dataset",
             )
 
             response = client.post(
                 "/api/v1/regressions",
                 json=_regression_payload(
-                    baseline_run_id=(
-                        baseline_run_id
-                    ),
-                    candidate_run_id=(
-                        candidate_run_id
-                    ),
+                    baseline_run_id=(baseline_run_id),
+                    candidate_run_id=(candidate_run_id),
                 ),
             )
 
-        assert (
-            response.status_code
-            == 201
-        )
+        assert response.status_code == 201
 
         body = response.json()
 
         assert body["regression_id"]
 
-        assert (
-            body["baseline_run_id"]
-            == baseline_run_id
-        )
+        assert body["baseline_run_id"] == baseline_run_id
 
-        assert (
-            body["candidate_run_id"]
-            == candidate_run_id
-        )
+        assert body["candidate_run_id"] == candidate_run_id
 
         assert body["status"] == "passed"
 
-        assert len(
-            body["comparisons"]
-        ) == 2
+        assert len(body["comparisons"]) == 2
 
-        metric_names = {
-            comparison["metric"]
-            for comparison
-            in body["comparisons"]
-        }
+        metric_names = {comparison["metric"] for comparison in body["comparisons"]}
 
         assert "accuracy" in metric_names
         assert "latency" in metric_names
@@ -234,73 +180,41 @@ def test_get_regression(
 
     try:
         with client:
-            baseline_run_id = (
-                _create_evaluation(
-                    client,
-                    "Baseline Dataset",
-                )
+            baseline_run_id = _create_evaluation(
+                client,
+                "Baseline Dataset",
             )
 
-            candidate_run_id = (
-                _create_evaluation(
-                    client,
-                    "Candidate Dataset",
-                )
+            candidate_run_id = _create_evaluation(
+                client,
+                "Candidate Dataset",
             )
 
             create_response = client.post(
                 "/api/v1/regressions",
                 json=_regression_payload(
-                    baseline_run_id=(
-                        baseline_run_id
-                    ),
-                    candidate_run_id=(
-                        candidate_run_id
-                    ),
+                    baseline_run_id=(baseline_run_id),
+                    candidate_run_id=(candidate_run_id),
                 ),
             )
 
-            assert (
-                create_response.status_code
-                == 201
-            )
+            assert create_response.status_code == 201
 
-            regression_id = (
-                create_response.json()[
-                    "regression_id"
-                ]
-            )
+            regression_id = create_response.json()["regression_id"]
 
-            response = client.get(
-                "/api/v1/regressions/"
-                f"{regression_id}"
-            )
+            response = client.get("/api/v1/regressions/" f"{regression_id}")
 
-        assert (
-            response.status_code
-            == 200
-        )
+        assert response.status_code == 200
 
         body = response.json()
 
-        assert (
-            body["regression_id"]
-            == regression_id
-        )
+        assert body["regression_id"] == regression_id
 
-        assert (
-            body["baseline_run_id"]
-            == baseline_run_id
-        )
+        assert body["baseline_run_id"] == baseline_run_id
 
-        assert (
-            body["candidate_run_id"]
-            == candidate_run_id
-        )
+        assert body["candidate_run_id"] == candidate_run_id
 
-        assert len(
-            body["comparisons"]
-        ) == 2
+        assert len(body["comparisons"]) == 2
 
     finally:
         app.dependency_overrides.clear()
@@ -316,21 +230,11 @@ def test_get_unknown_regression_returns_404(
 
     try:
         with client:
-            response = client.get(
-                "/api/v1/regressions/"
-                "missing-regression"
-            )
+            response = client.get("/api/v1/regressions/" "missing-regression")
 
-        assert (
-            response.status_code
-            == 404
-        )
+        assert response.status_code == 404
 
-        assert response.json() == {
-            "detail": (
-                "Regression not found"
-            )
-        }
+        assert response.json() == {"detail": ("Regression not found")}
 
     finally:
         app.dependency_overrides.clear()
@@ -346,34 +250,22 @@ def test_create_regression_rejects_missing_baseline(
 
     try:
         with client:
-            candidate_run_id = (
-                _create_evaluation(
-                    client,
-                    "Candidate Dataset",
-                )
+            candidate_run_id = _create_evaluation(
+                client,
+                "Candidate Dataset",
             )
 
             response = client.post(
                 "/api/v1/regressions",
                 json=_regression_payload(
-                    baseline_run_id=(
-                        "missing-baseline"
-                    ),
-                    candidate_run_id=(
-                        candidate_run_id
-                    ),
+                    baseline_run_id=("missing-baseline"),
+                    candidate_run_id=(candidate_run_id),
                 ),
             )
 
-        assert (
-            response.status_code
-            == 404
-        )
+        assert response.status_code == 404
 
-        assert (
-            "Baseline evaluation run"
-            in response.json()["detail"]
-        )
+        assert "Baseline evaluation run" in response.json()["detail"]
 
     finally:
         app.dependency_overrides.clear()
@@ -389,34 +281,22 @@ def test_create_regression_rejects_missing_candidate(
 
     try:
         with client:
-            baseline_run_id = (
-                _create_evaluation(
-                    client,
-                    "Baseline Dataset",
-                )
+            baseline_run_id = _create_evaluation(
+                client,
+                "Baseline Dataset",
             )
 
             response = client.post(
                 "/api/v1/regressions",
                 json=_regression_payload(
-                    baseline_run_id=(
-                        baseline_run_id
-                    ),
-                    candidate_run_id=(
-                        "missing-candidate"
-                    ),
+                    baseline_run_id=(baseline_run_id),
+                    candidate_run_id=("missing-candidate"),
                 ),
             )
 
-        assert (
-            response.status_code
-            == 404
-        )
+        assert response.status_code == 404
 
-        assert (
-            "Candidate evaluation run"
-            in response.json()["detail"]
-        )
+        assert "Candidate evaluation run" in response.json()["detail"]
 
     finally:
         app.dependency_overrides.clear()
@@ -435,20 +315,13 @@ def test_create_regression_requires_thresholds(
             response = client.post(
                 "/api/v1/regressions",
                 json={
-                    "baseline_run_id": (
-                        "baseline-run"
-                    ),
-                    "candidate_run_id": (
-                        "candidate-run"
-                    ),
+                    "baseline_run_id": ("baseline-run"),
+                    "candidate_run_id": ("candidate-run"),
                     "thresholds": [],
                 },
             )
 
-        assert (
-            response.status_code
-            == 422
-        )
+        assert response.status_code == 422
 
     finally:
         app.dependency_overrides.clear()

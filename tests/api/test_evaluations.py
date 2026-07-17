@@ -77,41 +77,28 @@ def _create_test_client(
     temporary SQLite database.
     """
 
-    database_path = (
-        tmp_path / database_name
-    )
+    database_path = tmp_path / database_name
 
-    engine = create_database_engine(
-        "sqlite:///"
-        f"{database_path.as_posix()}"
-    )
+    engine = create_database_engine("sqlite:///" f"{database_path.as_posix()}")
 
-    Base.metadata.create_all(
-        engine
-    )
+    Base.metadata.create_all(engine)
 
-    session_factory = create_session_factory(
-        engine
-    )
+    session_factory = create_session_factory(engine)
 
-    def override_database_session(
-    ) -> Generator[Session, None, None]:
+    def override_database_session() -> Generator[Session, None, None]:
         with session_factory() as session:
             yield session
 
-    def override_experiment_tracker(
-    ) -> BaseExperimentTracker:
+    def override_experiment_tracker() -> BaseExperimentTracker:
         return FakeExperimentTracker()
 
     application = create_app()
 
-    application.dependency_overrides[
-        get_database_session
-    ] = override_database_session
+    application.dependency_overrides[get_database_session] = override_database_session
 
-    application.dependency_overrides[
-        get_experiment_tracker
-    ] = override_experiment_tracker
+    application.dependency_overrides[get_experiment_tracker] = (
+        override_experiment_tracker
+    )
 
     return (
         TestClient(application),
@@ -136,22 +123,16 @@ def _evaluation_payload(
         },
         "dataset": {
             "name": dataset_name,
-            "description": (
-                "API integration test"
-            ),
+            "description": ("API integration test"),
             "version": "1.0",
             "questions": [
                 {
                     "question": "What is AI?",
-                    "expected_answer": (
-                        "Artificial Intelligence"
-                    ),
+                    "expected_answer": ("Artificial Intelligence"),
                 },
                 {
                     "question": "What is ML?",
-                    "expected_answer": (
-                        "Machine Learning"
-                    ),
+                    "expected_answer": ("Machine Learning"),
                 },
             ],
         },
@@ -161,19 +142,15 @@ def _evaluation_payload(
 def test_create_evaluation(
     tmp_path,
 ) -> None:
-    client, session_factory = (
-        _create_test_client(
-            tmp_path,
-            "create_api_test.db",
-        )
+    client, session_factory = _create_test_client(
+        tmp_path,
+        "create_api_test.db",
     )
 
     with client:
         response = client.post(
             "/api/v1/evaluations",
-            json=_evaluation_payload(
-                "API Evaluation Dataset"
-            ),
+            json=_evaluation_payload("API Evaluation Dataset"),
         )
 
     assert response.status_code == 201
@@ -183,17 +160,11 @@ def test_create_evaluation(
     assert data["model_name"] == "Dummy"
     assert data["model_version"] == "1.0"
 
-    assert (
-        data["tracking_run_id"]
-        == "fake-api-run-123"
-    )
+    assert data["tracking_run_id"] == "fake-api-run-123"
 
     assert len(data["metrics"]) == 3
 
-    metric_names = {
-        metric["name"]
-        for metric in data["metrics"]
-    }
+    metric_names = {metric["name"] for metric in data["metrics"]}
 
     assert "accuracy" in metric_names
     assert "latency" in metric_names
@@ -207,10 +178,7 @@ def test_create_evaluation(
 
         assert stored_run is not None
 
-        assert (
-            stored_run.mlflow_run_id
-            == "fake-api-run-123"
-        )
+        assert stored_run.mlflow_run_id == "fake-api-run-123"
 
 
 def test_list_evaluations(
@@ -224,19 +192,12 @@ def test_list_evaluations(
     with client:
         create_response = client.post(
             "/api/v1/evaluations",
-            json=_evaluation_payload(
-                "List Test Dataset"
-            ),
+            json=_evaluation_payload("List Test Dataset"),
         )
 
-        assert (
-            create_response.status_code
-            == 201
-        )
+        assert create_response.status_code == 201
 
-        response = client.get(
-            "/api/v1/evaluations"
-        )
+        response = client.get("/api/v1/evaluations")
 
     assert response.status_code == 200
 
@@ -244,20 +205,11 @@ def test_list_evaluations(
 
     assert len(data) == 1
 
-    assert (
-        data[0]["model_name"]
-        == "Dummy"
-    )
+    assert data[0]["model_name"] == "Dummy"
 
-    assert (
-        data[0]["dataset_name"]
-        == "List Test Dataset"
-    )
+    assert data[0]["dataset_name"] == "List Test Dataset"
 
-    assert (
-        data[0]["tracking_run_id"]
-        == "fake-api-run-123"
-    )
+    assert data[0]["tracking_run_id"] == "fake-api-run-123"
 
 
 def test_get_evaluation(
@@ -271,54 +223,30 @@ def test_get_evaluation(
     with client:
         create_response = client.post(
             "/api/v1/evaluations",
-            json=_evaluation_payload(
-                "Detail Test Dataset"
-            ),
+            json=_evaluation_payload("Detail Test Dataset"),
         )
 
-        assert (
-            create_response.status_code
-            == 201
-        )
+        assert create_response.status_code == 201
 
-        evaluation_id = (
-            create_response.json()[
-                "evaluation_id"
-            ]
-        )
+        evaluation_id = create_response.json()["evaluation_id"]
 
-        response = client.get(
-            f"/api/v1/evaluations/"
-            f"{evaluation_id}"
-        )
+        response = client.get(f"/api/v1/evaluations/" f"{evaluation_id}")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    assert (
-        data["evaluation_id"]
-        == evaluation_id
-    )
+    assert data["evaluation_id"] == evaluation_id
 
     assert data["model_name"] == "Dummy"
 
-    assert (
-        data["dataset_name"]
-        == "Detail Test Dataset"
-    )
+    assert data["dataset_name"] == "Detail Test Dataset"
 
-    assert (
-        data["tracking_run_id"]
-        == "fake-api-run-123"
-    )
+    assert data["tracking_run_id"] == "fake-api-run-123"
 
     assert len(data["metrics"]) == 3
 
-    metric_names = {
-        metric["name"]
-        for metric in data["metrics"]
-    }
+    metric_names = {metric["name"] for metric in data["metrics"]}
 
     assert "accuracy" in metric_names
     assert "latency" in metric_names
@@ -334,13 +262,8 @@ def test_get_unknown_evaluation_returns_404(
     )
 
     with client:
-        response = client.get(
-            "/api/v1/evaluations/"
-            "does-not-exist"
-        )
+        response = client.get("/api/v1/evaluations/" "does-not-exist")
 
     assert response.status_code == 404
 
-    assert response.json() == {
-        "detail": "Evaluation not found"
-    }
+    assert response.json() == {"detail": "Evaluation not found"}

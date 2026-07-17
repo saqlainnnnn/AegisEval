@@ -39,9 +39,7 @@ class RegressionRunRecord(Base):
         nullable=False,
     )
 
-    comparisons: Mapped[
-        list["RegressionMetricRecord"]
-    ] = relationship(
+    comparisons: Mapped[list["RegressionMetricRecord"]] = relationship(
         back_populates="regression_run",
         cascade="all, delete-orphan",
     )
@@ -86,9 +84,7 @@ class RegressionMetricRecord(Base):
         nullable=False,
     )
 
-    relative_change: Mapped[
-        float | None
-    ] = mapped_column(
+    relative_change: Mapped[float | None] = mapped_column(
         Float,
         nullable=True,
     )
@@ -108,8 +104,6 @@ class RegressionMetricRecord(Base):
         nullable=False,
     )
 
-    regression_run: Mapped[
-        RegressionRunRecord
-    ] = relationship(
+    regression_run: Mapped[RegressionRunRecord] = relationship(
         back_populates="comparisons"
     )
