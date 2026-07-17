@@ -16,7 +16,9 @@ from app.reports.models import (
 
 
 def test_evaluation_report_creation() -> None:
-    metadata = ReportMetadata()
+    metadata = ReportMetadata(
+        evaluation_run_id="evaluation-run-1",
+    )
 
     model = ModelInformation(
         name="GPT",
@@ -34,7 +36,8 @@ def test_evaluation_report_creation() -> None:
         total_metrics=2,
         overall_score=0.95,
         evaluation_duration_ms=125.0,
-        evaluation_status="completed",
+        started_at=metadata.generated_at,
+        finished_at=metadata.generated_at,
     )
 
     metrics = [
@@ -58,13 +61,16 @@ def test_evaluation_report_creation() -> None:
         metrics=metrics,
     )
 
+    assert report.metadata.evaluation_run_id == "evaluation-run-1"
     assert report.summary.total_metrics == 2
     assert len(report.metrics) == 2
     assert report.model.name == "GPT"
 
 
 def test_regression_report_creation() -> None:
-    metadata = ReportMetadata()
+    metadata = ReportMetadata(
+        evaluation_run_id="regression-run-1",
+    )
 
     comparison = RegressionMetricReport(
         metric=MetricType.ACCURACY,
@@ -83,5 +89,6 @@ def test_regression_report_creation() -> None:
         comparisons=[comparison],
     )
 
+    assert report.metadata.evaluation_run_id == "regression-run-1"
     assert report.status == RegressionStatus.PASSED
     assert len(report.comparisons) == 1

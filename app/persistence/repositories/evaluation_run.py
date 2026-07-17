@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import (
+    Session,
+    selectinload,
+)
 
 from app.database.models import EvaluationRunRecord
 
@@ -27,16 +30,33 @@ class EvaluationRunRepository:
         self,
         run_id: str,
     ) -> EvaluationRunRecord | None:
-        return self._session.get(
-            EvaluationRunRecord,
-            run_id,
+        statement = (
+            select(EvaluationRunRecord)
+            .options(
+                selectinload(EvaluationRunRecord.model),
+                selectinload(EvaluationRunRecord.dataset),
+                selectinload(EvaluationRunRecord.metrics),
+            )
+            .where(EvaluationRunRecord.id == run_id)
         )
+
+        return self._session.scalar(statement)
 
     def list_all(
         self,
     ) -> list[EvaluationRunRecord]:
-        statement = select(EvaluationRunRecord).order_by(
-            EvaluationRunRecord.started_at.desc()
+        statement = (
+            select(EvaluationRunRecord)
+            .options(
+                selectinload(EvaluationRunRecord.model),
+                selectinload(EvaluationRunRecord.dataset),
+                selectinload(EvaluationRunRecord.metrics),
+            )
+            .order_by(
+                EvaluationRunRecord.started_at.desc()
+            )
         )
 
-        return list(self._session.scalars(statement).all())
+        return list(
+            self._session.scalars(statement).all()
+        )

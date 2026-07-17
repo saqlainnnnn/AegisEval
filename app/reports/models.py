@@ -18,22 +18,24 @@ class ReportMetadata(BaseModel):
     Metadata describing a generated report.
     """
 
-    report_id: UUID = Field(
-        default_factory=uuid4,
-    )
+    report_id: UUID = Field(default_factory=uuid4)
 
     generated_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
+        default_factory=lambda: datetime.now(UTC)
     )
 
     generated_by: str = "AegisEval"
 
     version: str = "1.0"
 
+    evaluation_run_id: str
+
+    mlflow_run_id: str | None = None
+
 
 class MetricReport(BaseModel):
     """
-    Represents one metric in an evaluation report.
+    Report representation of a single metric.
     """
 
     metric: MetricType
@@ -43,7 +45,7 @@ class MetricReport(BaseModel):
     higher_is_better: bool
 
     metadata: dict[str, Any] = Field(
-        default_factory=dict,
+        default_factory=dict
     )
 
 
@@ -58,12 +60,16 @@ class SummaryReport(BaseModel):
 
     evaluation_duration_ms: float
 
-    evaluation_status: str
+    started_at: datetime
+
+    finished_at: datetime
+
+    evaluation_status: str = "completed"
 
 
 class ModelInformation(BaseModel):
     """
-    Information about the evaluated model.
+    Information describing the evaluated model.
     """
 
     name: str
@@ -78,19 +84,23 @@ class ModelInformation(BaseModel):
 
     retriever: str | None = None
 
+    chunk_size: int | None = None
+
+    top_k: int | None = None
+
 
 class DatasetInformation(BaseModel):
     """
-    Information about the evaluated dataset.
+    Information describing the evaluated dataset.
     """
 
     dataset_id: str
 
     name: str
 
-    version: str | None = None
-
     description: str
+
+    version: str | None = None
 
 
 class EvaluationReport(BaseModel):
@@ -106,12 +116,15 @@ class EvaluationReport(BaseModel):
 
     summary: SummaryReport
 
-    metrics: list[MetricReport]
+    metrics: list[MetricReport] = Field(
+        default_factory=list
+    )
 
 
 class RegressionMetricReport(BaseModel):
     """
-    Comparison for a single metric.
+    Comparison between baseline and candidate
+    for a single metric.
     """
 
     metric: MetricType
@@ -140,4 +153,6 @@ class RegressionReport(BaseModel):
 
     status: RegressionStatus
 
-    comparisons: list[RegressionMetricReport]
+    comparisons: list[
+        RegressionMetricReport
+    ] = Field(default_factory=list)
