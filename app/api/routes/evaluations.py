@@ -14,6 +14,10 @@ from app.api.dependencies import (
     get_metrics_engine,
     get_persistence_service,
 )
+from app.api.mappers.evaluation import (
+    to_evaluation_detail,
+    to_evaluation_list_item,
+)
 from app.api.models.evaluation import (
     CreateEvaluationRequest,
     CreateEvaluationResponse,
@@ -70,7 +74,7 @@ def create_evaluation(
         questions=[
             Question(
                 question=question.question,
-                expected_answer=(question.expected_answer),
+                expected_answer=question.expected_answer,
             )
             for question in request.dataset.questions
         ],
@@ -80,15 +84,14 @@ def create_evaluation(
         name=request.model.name,
         version=request.model.version,
         model_type=request.model.model_type,
-        embedding_model=(request.model.embedding_model),
-        prompt_version=(request.model.prompt_version),
+        embedding_model=request.model.embedding_model,
+        prompt_version=request.model.prompt_version,
         retriever=request.model.retriever,
         chunk_size=request.model.chunk_size,
         top_k=request.model.top_k,
     )
 
     adapter = DummyAdapter(model_config)
-
     runner = BenchmarkRunner(adapter)
 
     evaluation_service = EvaluationService(
@@ -108,7 +111,7 @@ def create_evaluation(
         EvaluationMetricResponse(
             name=metric.metric.value,
             value=metric.value,
-            higher_is_better=(metric.higher_is_better),
+            higher_is_better=metric.higher_is_better,
         )
         for metric in result.metrics.metrics.values()
     ]
@@ -118,7 +121,7 @@ def create_evaluation(
         dataset_id=dataset.id,
         tracking_run_id=result.tracking_run_id,
         model_name=result.evaluation.model.name,
-        model_version=(result.evaluation.model.version),
+        model_version=result.evaluation.model.version,
         metrics=metrics,
     )
 
@@ -137,16 +140,7 @@ def list_evaluations(
     runs = repository.list_all()
 
     return [
-        EvaluationListItemResponse(
-            evaluation_id=run.id,
-            model_name=run.model.name,
-            model_version=run.model.version,
-            dataset_name=run.dataset.name,
-            tracking_run_id=run.mlflow_run_id,
-            started_at=run.started_at.isoformat(),
-            finished_at=run.finished_at.isoformat(),
-            duration_ms=run.duration_ms,
-        )
+        to_evaluation_list_item(run)
         for run in runs
     ]
 
@@ -171,21 +165,4 @@ def get_evaluation(
             detail="Evaluation not found",
         )
 
-    return EvaluationDetailResponse(
-        evaluation_id=run.id,
-        model_name=run.model.name,
-        model_version=run.model.version,
-        dataset_name=run.dataset.name,
-        tracking_run_id=run.mlflow_run_id,
-        started_at=run.started_at.isoformat(),
-        finished_at=run.finished_at.isoformat(),
-        duration_ms=run.duration_ms,
-        metrics=[
-            EvaluationMetricResponse(
-                name=metric.metric_type,
-                value=metric.value,
-                higher_is_better=(metric.higher_is_better),
-            )
-            for metric in run.metrics
-        ],
-    )
+    return to_evaluation_detail(run)

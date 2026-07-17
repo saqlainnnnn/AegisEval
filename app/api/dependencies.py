@@ -31,6 +31,15 @@ from app.regression.policy import (
 )
 from app.services.regression import RegressionService
 
+from app.adapters.dummy import DummyAdapter
+from app.benchmark.runner import BenchmarkRunner
+from app.services.evaluation import EvaluationService
+from app.tracking.base import BaseExperimentTracker
+from app.domain.evaluation import ModelConfig
+
+from app.reports.builder import ReportBuilder
+from app.services.report import ReportService
+
 
 @lru_cache
 def get_database_engine() -> Engine:
@@ -105,6 +114,32 @@ def get_persistence_service(
 
     return EvaluationPersistenceService(session)
 
+def get_evaluation_service(
+    metrics_engine: MetricsEngine = Depends(get_metrics_engine),
+    tracker: BaseExperimentTracker = Depends(get_experiment_tracker),
+) -> EvaluationService:
+    """
+    Create the evaluation service.
+    """
+
+    # Placeholder adapter/runner. The adapter will later be created
+    # dynamically from the ModelConfig during evaluation.
+    runner = BenchmarkRunner(
+        DummyAdapter(
+            ModelConfig(
+                name="placeholder",
+                version="placeholder",
+                model_type="dummy",
+            )
+        )
+    )
+
+    return EvaluationService(
+        runner=runner,
+        metrics_engine=metrics_engine,
+        tracker=tracker,
+    )
+
 
 def get_evaluation_run_repository(
     session: Session = Depends(get_database_session),
@@ -151,4 +186,22 @@ def get_regression_service(
         evaluation_repository=(evaluation_repository),
         regression_repository=(regression_repository),
         regression_engine=(regression_engine),
+    )
+
+def get_report_service(
+    evaluation_repository: EvaluationRunRepository = Depends(
+        get_evaluation_run_repository
+    ),
+    regression_repository: RegressionRunRepository = Depends(
+        get_regression_run_repository
+    ),
+) -> ReportService:
+    """
+    Create the report service.
+    """
+
+    return ReportService(
+        evaluation_repository=evaluation_repository,
+        regression_repository=regression_repository,
+        builder=ReportBuilder(),
     )

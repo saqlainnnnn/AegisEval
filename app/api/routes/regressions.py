@@ -26,6 +26,11 @@ from app.services.regression import (
     RegressionService,
 )
 
+from app.api.mappers.regression import (
+    to_regression_detail,
+    to_regression_list_item,
+)
+
 router = APIRouter(
     prefix="/regressions",
     tags=["regressions"],

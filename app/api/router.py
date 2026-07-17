@@ -12,6 +12,10 @@ from app.api.routes.regressions import (
     router as regressions_router,
 )
 
+from app.api.routes.reports import (
+    router as reports_router,
+)
+
 api_router = APIRouter()
 
 api_router.include_router(health_router)
@@ -19,3 +23,5 @@ api_router.include_router(health_router)
 api_router.include_router(evaluations_router)
 
 api_router.include_router(regressions_router)
+
+api_router.include_router(reports_router)
