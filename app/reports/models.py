@@ -64,8 +64,6 @@ class SummaryReport(BaseModel):
 
     finished_at: datetime
 
-    evaluation_status: str = "completed"
-
 
 class ModelInformation(BaseModel):
     """
