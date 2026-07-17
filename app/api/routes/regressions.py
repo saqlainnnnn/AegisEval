@@ -27,8 +27,8 @@ from app.services.regression import (
 )
 
 from app.api.mappers.regression import (
-    to_regression_detail,
-    to_regression_list_item,
+    to_regression_response_from_domain,
+    to_regression_response_from_record,
 )
 
 router = APIRouter(
@@ -74,25 +74,10 @@ def create_regression(
 
     result = service_result.result
 
-    return RegressionResponse(
-        regression_id=(service_result.regression_id),
-        baseline_run_id=(result.baseline_run_id),
-        candidate_run_id=(result.candidate_run_id),
-        status=result.status,
-        comparisons=[
-            RegressionMetricResponse(
-                metric=comparison.metric,
-                baseline_value=(comparison.baseline_value),
-                candidate_value=(comparison.candidate_value),
-                absolute_change=(comparison.absolute_change),
-                relative_change=(comparison.relative_change),
-                threshold_type=(comparison.threshold.threshold_type),
-                threshold_value=(comparison.threshold.value),
-                status=comparison.status,
-            )
-            for comparison in result.comparisons
-        ],
-    )
+    return to_regression_response_from_domain(
+    regression_id=service_result.regression_id,
+    result=service_result.result,
+)
 
 
 @router.get(
@@ -115,22 +100,4 @@ def get_regression(
             detail="Regression not found",
         )
 
-    return RegressionResponse(
-        regression_id=record.id,
-        baseline_run_id=(record.baseline_run_id),
-        candidate_run_id=(record.candidate_run_id),
-        status=record.status,
-        comparisons=[
-            RegressionMetricResponse(
-                metric=(comparison.metric_type),
-                baseline_value=(comparison.baseline_value),
-                candidate_value=(comparison.candidate_value),
-                absolute_change=(comparison.absolute_change),
-                relative_change=(comparison.relative_change),
-                threshold_type=(comparison.threshold_type),
-                threshold_value=(comparison.threshold_value),
-                status=comparison.status,
-            )
-            for comparison in record.comparisons
-        ],
-    )
+    return to_regression_response_from_record(record)

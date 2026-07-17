@@ -1,46 +1,67 @@
 from __future__ import annotations
 
 from app.api.models.regression import (
-    RegressionDetailResponse,
-    RegressionListItemResponse,
     RegressionMetricResponse,
+    RegressionResponse,
 )
+from app.domain.regression import RegressionResult
 
 
-def to_regression_list_item(
-    run,
-) -> RegressionListItemResponse:
-    return RegressionListItemResponse(
-        regression_id=run.id,
-        baseline_evaluation_id=run.baseline_evaluation_id,
-        candidate_evaluation_id=run.candidate_evaluation_id,
-        status=run.status,
-        started_at=run.started_at.isoformat(),
-        finished_at=run.finished_at.isoformat(),
-        duration_ms=run.duration_ms,
+def to_regression_response_from_domain(
+    *,
+    regression_id: str,
+    result: RegressionResult,
+) -> RegressionResponse:
+    """
+    Convert a domain RegressionResult into an API response.
+    Used immediately after executing a regression.
+    """
+
+    return RegressionResponse(
+        regression_id=regression_id,
+        baseline_run_id=result.baseline_run_id,
+        candidate_run_id=result.candidate_run_id,
+        status=result.status,
+        comparisons=[
+            RegressionMetricResponse(
+                metric=comparison.metric,
+                baseline_value=comparison.baseline_value,
+                candidate_value=comparison.candidate_value,
+                absolute_change=comparison.absolute_change,
+                relative_change=comparison.relative_change,
+                threshold_type=comparison.threshold.threshold_type,
+                threshold_value=comparison.threshold.value,
+                status=comparison.status,
+            )
+            for comparison in result.comparisons
+        ],
     )
 
 
-def to_regression_detail(
-    run,
-) -> RegressionDetailResponse:
-    return RegressionDetailResponse(
-        regression_id=run.id,
-        baseline_evaluation_id=run.baseline_evaluation_id,
-        candidate_evaluation_id=run.candidate_evaluation_id,
-        status=run.status,
-        started_at=run.started_at.isoformat(),
-        finished_at=run.finished_at.isoformat(),
-        duration_ms=run.duration_ms,
-        metrics=[
+def to_regression_response_from_record(
+    record,
+) -> RegressionResponse:
+    """
+    Convert a persisted regression record into an API response.
+    Used when retrieving an existing regression.
+    """
+
+    return RegressionResponse(
+        regression_id=record.id,
+        baseline_run_id=record.baseline_run_id,
+        candidate_run_id=record.candidate_run_id,
+        status=record.status,
+        comparisons=[
             RegressionMetricResponse(
-                name=metric.metric_type,
-                baseline_value=metric.baseline_value,
-                candidate_value=metric.candidate_value,
-                delta=metric.delta,
-                threshold=metric.threshold,
-                passed=metric.passed,
+                metric=comparison.metric_type,
+                baseline_value=comparison.baseline_value,
+                candidate_value=comparison.candidate_value,
+                absolute_change=comparison.absolute_change,
+                relative_change=comparison.relative_change,
+                threshold_type=comparison.threshold_type,
+                threshold_value=comparison.threshold_value,
+                status=comparison.status,
             )
-            for metric in run.metrics
+            for comparison in record.comparisons
         ],
     )
