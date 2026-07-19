@@ -35,7 +35,7 @@ class MetricType(str, Enum):
     ACCURACY = "accuracy"
     PRECISION = "precision"
     RECALL = "recall"
-    F1 = "f1"
+    
 
     # Performance Metrics
     LATENCY = "latency"
@@ -53,6 +53,12 @@ class MetricType(str, Enum):
     GROUNDING_RATE = "grounding_rate"
     CITATION_ACCURACY = "citation_accuracy"
     HALLUCINATION_RATE = "hallucination_rate"
+
+    #GENERATION Metrics
+    EXACT_MATCH = "exact_match"
+    F1 = "f1"
+    BLEU = "bleu"
+    ROUGE_L = "rouge_l"
 
 class RegressionStatus(str, Enum):
     """
