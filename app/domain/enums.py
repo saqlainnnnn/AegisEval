@@ -31,16 +31,28 @@ class MetricType(str, Enum):
     Supported evaluation metrics.
     """
 
+    # Classification Metrics
     ACCURACY = "accuracy"
     PRECISION = "precision"
     RECALL = "recall"
     F1 = "f1"
+
+    # Performance Metrics
     LATENCY = "latency"
     FAILURE_RATE = "failure_rate"
+
+    # Retrieval Metrics
+    RECALL_AT_K = "recall_at_k"
+    PRECISION_AT_K = "precision_at_k"
+    HIT_RATE_AT_K = "hit_rate_at_k"
+    MRR = "mrr"
+    MAP = "map"
+    NDCG = "ndcg"
+
+    # RAG Metrics
     GROUNDING_RATE = "grounding_rate"
     CITATION_ACCURACY = "citation_accuracy"
     HALLUCINATION_RATE = "hallucination_rate"
-
 
 class RegressionStatus(str, Enum):
     """

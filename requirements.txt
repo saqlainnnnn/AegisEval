@@ -114,7 +114,7 @@ python-dotenv==1.2.2
 python-multipart==0.0.32
 pytokens==0.4.1
 pytz==2026.2
-pywin32==312
+pywin32==312; platform_system == "Windows"
 pywin32-ctypes==0.2.3
 PyYAML==6.0.3
 RapidFuzz==3.14.5

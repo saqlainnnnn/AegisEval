@@ -54,4 +54,7 @@ def test_dummy_adapter_returns_sources() -> None:
 
     prediction = adapter.evaluate(question)
 
-    assert prediction.retrieved_documents == ["paper1", "paper2"]
+    assert [doc.id for doc in prediction.retrieved_documents] == [
+        "paper1",
+        "paper2",
+    ]
