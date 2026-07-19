@@ -14,10 +14,24 @@ class Prediction(DomainModel):
 
     answer: str
 
-    retrieved_sources: list[str] = Field(default_factory=list)
-
+    retrieved_documents: list[RetrievedDocument] = Field(
+        default_factory=list,
+    )
     token_usage: int | None = None
 
     estimated_cost: float | None = None
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+class RetrievedDocument(DomainModel):
+    """
+    Document retrieved by the system.
+    """
+
+    id: str
+
+    content: str
+
+    score: float | None = None
 
     metadata: dict[str, Any] = Field(default_factory=dict)

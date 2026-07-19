@@ -7,6 +7,17 @@ from pydantic import Field
 from app.domain.common import DomainModel, IdentifiableModel
 
 
+class RelevantDocument(DomainModel):
+    """
+    Ground-truth document expected to support an answer.
+    """
+
+    id: str
+
+    content: str
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
 class Question(IdentifiableModel):
     """
     Represents a single evaluation sample.
@@ -16,8 +27,10 @@ class Question(IdentifiableModel):
 
     expected_answer: str
 
-    expected_sources: list[str] = Field(default_factory=list)
-
+    expected_documents: list[RelevantDocument] = Field(
+        default_factory=list,
+    )
+    
     difficulty: str = "medium"
 
     category: str = "general"

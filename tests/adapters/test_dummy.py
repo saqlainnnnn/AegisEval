@@ -2,6 +2,7 @@ from app.adapters.dummy import DummyAdapter
 from app.domain.dataset import Question
 from app.domain.enums import ModelType
 from app.domain.evaluation import ModelConfig
+from app.domain.dataset import RelevantDocument
 
 
 def test_dummy_adapter_returns_expected_answer() -> None:
@@ -13,10 +14,20 @@ def test_dummy_adapter_returns_expected_answer() -> None:
 
     adapter = DummyAdapter(config)
 
-    question = Question(
-        question="What is AI?",
-        expected_answer="Artificial Intelligence",
-    )
+    question = question = Question(
+    question="What is AI?",
+    expected_answer="Artificial Intelligence",
+    expected_documents=[
+        RelevantDocument(
+            id="paper1",
+            content="paper1",
+        ),
+        RelevantDocument(
+            id="paper2",
+            content="paper2",
+        ),
+    ],
+)
 
     prediction = adapter.evaluate(question)
 
@@ -35,9 +46,12 @@ def test_dummy_adapter_returns_sources() -> None:
     question = Question(
         question="Q",
         expected_answer="A",
-        expected_sources=["paper1", "paper2"],
+        expected_documents=[
+        RelevantDocument(id="paper1", content="paper1"),
+        RelevantDocument(id="paper2", content="paper2"),
+    ]
     )
 
     prediction = adapter.evaluate(question)
 
-    assert prediction.retrieved_sources == ["paper1", "paper2"]
+    assert prediction.retrieved_documents == ["paper1", "paper2"]

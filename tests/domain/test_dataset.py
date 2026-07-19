@@ -11,7 +11,7 @@ def test_question_defaults() -> None:
         expected_answer="Artificial Intelligence",
     )
 
-    assert question.expected_sources == []
+    assert question.expected_documents == []
     assert question.tags == []
     assert question.metadata == {}
 
