@@ -13,9 +13,8 @@ class RelevantDocument(DomainModel):
     """
 
     id: str
-
     content: str
-
+    relevance: float = 1.0
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 class Question(IdentifiableModel):
